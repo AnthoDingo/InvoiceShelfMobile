@@ -310,8 +310,12 @@ public class ApiService
     /// </summary>
     public async Task<(Invoice? Invoice, string? Error)> CreateInvoice(CreateInvoiceRequest request)
     {
-        var res = await Send<InvoiceDetail>(HttpMethod.Post, ApiUri.AllInvoices, request, authenticated: true);
-        return res.IsSuccess ? (res.Value?.Data, null) : (null, res.Error ?? "Échec de la création de la facture.");
+        ApiResponse<InvoiceDetail> res = await Send<InvoiceDetail>(HttpMethod.Post, ApiUri.AllInvoices, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la création de la facture (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
     }
 
     // ── Catalogue d'articles ────────────────────────────────────────────────
@@ -384,7 +388,11 @@ public class ApiService
     public async Task<(Estimate? Estimate, string? Error)> CreateEstimate(CreateEstimateRequest request)
     {
         ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Post, ApiUri.AllEstimates, request, authenticated: true);
-        return res.IsSuccess ? (res.Value?.Data, null) : (null, res.Error ?? "Échec de la création du devis.");
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la création du devis (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
     }
 
     /// <summary>Liste les templates PDF disponibles pour les devis (natifs et personnalisés).</summary>
@@ -439,8 +447,12 @@ public class ApiService
     /// </summary>
     public async Task<(Payment? Payment, string? Error)> CreatePayment(CreatePaymentRequest request)
     {
-        var res = await Send<PaymentDetail>(HttpMethod.Post, ApiUri.AllPayments, request, authenticated: true);
-        return res.IsSuccess ? (res.Value?.Data, null) : (null, res.Error ?? "Échec de l'enregistrement du paiement.");
+        ApiResponse<PaymentDetail> res = await Send<PaymentDetail>(HttpMethod.Post, ApiUri.AllPayments, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de l'enregistrement du paiement (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
     }
 
     // ── Dépenses ──────────────────────────────────────────────────────────────
