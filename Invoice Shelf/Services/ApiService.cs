@@ -314,7 +314,7 @@ public class ApiService
         if (!res.IsSuccess)
             return (null, res.Error ?? $"Échec de la création de la facture (HTTP {res.StatusCode}).");
         if (res.Value?.Data is null)
-            return (null, $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
         return (res.Value.Data, null);
     }
 
@@ -391,7 +391,7 @@ public class ApiService
         if (!res.IsSuccess)
             return (null, res.Error ?? $"Échec de la création du devis (HTTP {res.StatusCode}).");
         if (res.Value?.Data is null)
-            return (null, $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
         return (res.Value.Data, null);
     }
 
@@ -451,7 +451,7 @@ public class ApiService
         if (!res.IsSuccess)
             return (null, res.Error ?? $"Échec de l'enregistrement du paiement (HTTP {res.StatusCode}).");
         if (res.Value?.Data is null)
-            return (null, $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
         return (res.Value.Data, null);
     }
 

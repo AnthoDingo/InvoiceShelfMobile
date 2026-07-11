@@ -98,11 +98,11 @@ public partial class CreateInvoiceViewModel : ObservableObject
         ErrorMessage = null;
         try
         {
-            var customersTask    = _apiService.GetCustomers();
-            var nextNumberTask   = _apiService.GetNextInvoiceNumber();
-            var templatesTask    = _apiService.GetInvoiceTemplates();
-            var catalogItemsTask = _apiService.GetCatalogItems();
-            var customFieldsTask = _apiService.GetCustomFields("Invoice");
+            Task<List<Customer>> customersTask    = _apiService.GetCustomers();
+            Task<string?> nextNumberTask          = _apiService.GetNextInvoiceNumber();
+            Task<List<InvoiceTemplate>> templatesTask   = _apiService.GetInvoiceTemplates();
+            Task<List<CatalogItem>> catalogItemsTask    = _apiService.GetCatalogItems();
+            Task<List<CustomField>> customFieldsTask    = _apiService.GetCustomFields("Invoice");
             await Task.WhenAll(customersTask, nextNumberTask, templatesTask, catalogItemsTask, customFieldsTask);
 
             Customers = customersTask.Result;
@@ -114,7 +114,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
             // > Champs personnalisés d'InvoiceShelf). Triés par "order" comme sur le
             // front web (voir CreateCustomFields.vue).
             CustomFields.Clear();
-            foreach (var field in customFieldsTask.Result.OrderBy(f => f.Order))
+            foreach (CustomField field in customFieldsTask.Result.OrderBy(f => f.Order))
                 CustomFields.Add(new CustomFieldInputViewModel(field));
             OnPropertyChanged(nameof(HasCustomFields));
 
@@ -139,7 +139,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
     [RelayCommand]
     private void AddItem()
     {
-        var item = new InvoiceLineItemViewModel();
+        InvoiceLineItemViewModel item = new InvoiceLineItemViewModel();
         // Une ligne change de valeurs (quantité/prix) : le sous-total doit se remettre à jour.
         item.PropertyChanged += (_, _) => RecalculateTotals();
         Items.Add(item);
@@ -174,14 +174,14 @@ public partial class CreateInvoiceViewModel : ObservableObject
 
         string templateName = SelectedTemplate?.Name ?? FallbackTemplateName;
 
-        var validItems = Items.Where(i => i.IsValid).ToList();
+        List<InvoiceLineItemViewModel> validItems = Items.Where(i => i.IsValid).ToList();
         if (validItems.Count == 0)
         {
             ErrorMessage = "Ajoutez au moins un article valide (nom, quantité et prix).";
             return;
         }
 
-        var invalidCustomField = CustomFields.FirstOrDefault(f => !f.IsValid);
+        CustomFieldInputViewModel? invalidCustomField = CustomFields.FirstOrDefault(f => !f.IsValid);
         if (invalidCustomField is not null)
         {
             ErrorMessage = $"Le champ « {invalidCustomField.Label} » est obligatoire.";
@@ -206,12 +206,12 @@ public partial class CreateInvoiceViewModel : ObservableObject
 
             // Un champ optionnel laissé vide n'est pas transmis (BuildValue() renvoie
             // null) : le serveur ne crée alors aucune CustomFieldValue pour lui.
-            var customFieldRequests = CustomFields
+            List<CreateInvoiceCustomFieldRequest> customFieldRequests = CustomFields
                 .Select(f => new CreateInvoiceCustomFieldRequest(f.Definition.Id, f.BuildValue()))
                 .Where(f => f.Value is not null)
                 .ToList();
 
-            var request = new CreateInvoiceRequest(
+            CreateInvoiceRequest request = new CreateInvoiceRequest(
                 InvoiceDate: InvoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 DueDate: DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 CustomerId: SelectedCustomer.Id,
@@ -224,6 +224,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
                 TemplateName: templateName,
                 Notes: string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim(),
                 Items: itemRequests,
+                ExchangeRate: 1,
                 CustomFields: customFieldRequests.Count > 0 ? customFieldRequests : null
             );
 
@@ -232,7 +233,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
             // InvoicesRequest::getInvoicePayload). La facture est donc toujours
             // créée en brouillon depuis ce formulaire ; l'envoi au client se fait
             // ensuite séparément (POST /invoices/{id}/send).
-            var (invoice, error) = await _apiService.CreateInvoice(request);
+            (Invoice? invoice, string? error) = await _apiService.CreateInvoice(request);
 
             if (invoice is null)
             {

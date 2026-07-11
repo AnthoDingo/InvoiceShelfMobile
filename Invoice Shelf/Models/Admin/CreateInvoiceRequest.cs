@@ -45,6 +45,15 @@ public record CreateInvoiceCustomFieldRequest(
 /// doivent simplement être numériquement cohérentes pour passer la validation.
 /// Comme ailleurs dans l'API, les montants (discount_val, sub_total, total,
 /// tax, price) sont exprimés en centimes ; "quantity" ne l'est pas.
+/// IMPORTANT : "exchange_rate" doit être envoyé explicitement. Ce client
+/// n'envoyant pas "currency_id", InvoicesRequest::getInvoicePayload compare
+/// currency_id (absent → null) à la devise de la société ; comme elles
+/// diffèrent presque toujours, le serveur retient $this->exchange_rate tel
+/// quel. Sans ce champ, exchange_rate est stocké à null en base, ce qui fait
+/// échouer la désérialisation côté mobile (InvoiceResource renvoie
+/// exchange_rate: null, incompatible avec un decimal non-nullable). Ce
+/// client ne gère pas le multi-devises (voir limitations connues) : 1 est
+/// donc toujours correct ici.
 /// </summary>
 public record CreateInvoiceRequest(
     [property: JsonPropertyName("invoice_date")]   string  InvoiceDate,
@@ -59,6 +68,7 @@ public record CreateInvoiceRequest(
     [property: JsonPropertyName("template_name")]  string  TemplateName,
     [property: JsonPropertyName("notes")]          string? Notes,
     [property: JsonPropertyName("items")]          List<CreateInvoiceItemRequest> Items,
+    [property: JsonPropertyName("exchange_rate")]  decimal ExchangeRate = 1,
     // Champs personnalisés (définis côté serveur pour le type "Invoice"). Omis du
     // JSON si null/vide (voir ApiService.JsonOptions : DefaultIgnoreCondition =
     // WhenWritingNull) — le serveur n'exige "customFields" que si des champs

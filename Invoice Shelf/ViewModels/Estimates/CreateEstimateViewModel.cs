@@ -227,6 +227,7 @@ public partial class CreateEstimateViewModel : ObservableObject
                 TemplateName: templateName,
                 Notes: string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim(),
                 Items: itemRequests,
+                ExchangeRate: 1,
                 CustomFields: customFieldRequests.Count > 0 ? customFieldRequests : null
             );
 
