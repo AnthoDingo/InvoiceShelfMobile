@@ -1,5 +1,7 @@
 # InvoiceShelf Mobile — .NET 10 MAUI
 
+🇬🇧 [English version](./README.en.md)
+
 Application mobile cross-platform pour [InvoiceShelf](https://invoiceshelf.com).
 
 ## 📱 Fonctionnalités
