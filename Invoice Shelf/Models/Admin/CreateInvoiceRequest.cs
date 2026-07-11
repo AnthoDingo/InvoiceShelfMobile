@@ -6,8 +6,11 @@ namespace InvoiceShelf.Models.Admin;
 /// $item['discount_val'] et $item['tax'] (sans valeur par défaut) pour
 /// calculer base_discount_val/base_tax — ces deux clés doivent donc toujours
 /// être présentes dans le JSON, même à 0, sous peine d'une erreur
-/// "Undefined array key". Ce formulaire ne gère pas encore de remise ou de
-/// taxe par article : elles sont envoyées à 0.
+/// "Undefined array key". De plus, la colonne invoice_items.discount_type
+/// est NOT NULL en base (sans valeur par défaut) : "discount_type" doit donc
+/// aussi toujours être envoyé ("fixed" par défaut côté InvoiceShelf). Ce
+/// formulaire ne gère pas encore de remise ou de taxe par article : elles
+/// sont envoyées à 0 / "fixed".
 /// </summary>
 public record CreateInvoiceItemRequest(
     [property: JsonPropertyName("name")]          string  Name,
@@ -15,6 +18,7 @@ public record CreateInvoiceItemRequest(
     [property: JsonPropertyName("quantity")]       decimal Quantity,
     [property: JsonPropertyName("price")]          long    Price,
     [property: JsonPropertyName("discount")]       decimal Discount = 0,
+    [property: JsonPropertyName("discount_type")]  string  DiscountType = "fixed",
     [property: JsonPropertyName("discount_val")]   long    DiscountValue = 0,
     [property: JsonPropertyName("tax")]            long    Tax = 0
 );

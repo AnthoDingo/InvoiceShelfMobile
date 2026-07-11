@@ -197,6 +197,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
                 Quantity: i.ParsedQuantity,
                 Price: ToCents(i.ParsedUnitPrice),
                 Discount: 0,
+                DiscountType: "fixed",
                 DiscountValue: 0,
                 Tax: 0
             )).ToList();
