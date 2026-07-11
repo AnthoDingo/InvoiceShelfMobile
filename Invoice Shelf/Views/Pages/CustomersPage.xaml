@@ -15,7 +15,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*" Style="{StaticResource ResponsiveContainer}">
 
         <!-- Barre de recherche -->
         <Border

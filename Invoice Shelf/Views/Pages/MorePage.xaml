@@ -14,7 +14,7 @@
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Spacing="0">
+        <VerticalStackLayout Spacing="0" Style="{StaticResource ResponsiveContainer}">
 
             <!-- Profile card -->
             <Border

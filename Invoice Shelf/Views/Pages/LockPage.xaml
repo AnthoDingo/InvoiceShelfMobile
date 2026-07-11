@@ -14,7 +14,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="*,Auto" Padding="32">
+    <Grid RowDefinitions="*,Auto" Padding="32" Style="{StaticResource ResponsiveContainer}">
 
         <VerticalStackLayout Grid.Row="0" VerticalOptions="Center" HorizontalOptions="Center" Spacing="20">
 

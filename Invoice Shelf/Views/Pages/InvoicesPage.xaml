@@ -8,7 +8,7 @@
              x:DataType="viewmodels:InvoicesViewModel"
              Title="Factures">
 
-    <Grid>
+    <Grid Style="{StaticResource ResponsiveContainer}">
         <tabview:TabView
             BackgroundColor="Transparent"
             SelectedHeaderBackgroundColor="Transparent">

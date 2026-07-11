@@ -22,7 +22,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsLoading}">
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsLoading}" Style="{StaticResource ResponsiveContainer}">
         <ScrollView>
             <VerticalStackLayout Spacing="0" Padding="0,0,0,48">
 

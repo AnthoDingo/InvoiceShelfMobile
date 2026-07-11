@@ -424,4 +424,12 @@
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
     </Style>
 
+
+    <!-- Conteneur responsive : sur tablette/desktop, limite la largeur du contenu et le centre
+         pour eviter que les pages (concues pour mobile) ne soient etirees sur grand ecran. -->
+    <Style x:Key="ResponsiveContainer" TargetType="View">
+        <Setter Property="HorizontalOptions" Value="{OnIdiom Phone=Fill, Tablet=Center, Desktop=Center, Default=Fill}"/>
+        <Setter Property="MaximumWidthRequest" Value="{OnIdiom Phone=-1, Tablet=700, Desktop=760, Default=-1}"/>
+    </Style>
+
 </ResourceDictionary>

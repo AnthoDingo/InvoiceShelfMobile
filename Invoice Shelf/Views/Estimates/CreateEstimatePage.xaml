@@ -16,7 +16,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid>
+    <Grid Style="{StaticResource ResponsiveContainer}">
 
         <!-- Chargement -->
         <VerticalStackLayout
