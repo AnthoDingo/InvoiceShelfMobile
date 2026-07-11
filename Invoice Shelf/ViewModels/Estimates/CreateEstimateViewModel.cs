@@ -198,7 +198,10 @@ public partial class CreateEstimateViewModel : ObservableObject
                 Name: i.Name.Trim(),
                 Description: string.IsNullOrWhiteSpace(i.Description) ? null : i.Description.Trim(),
                 Quantity: i.ParsedQuantity,
-                Price: ToCents(i.ParsedUnitPrice)
+                Price: ToCents(i.ParsedUnitPrice),
+                Discount: 0,
+                DiscountValue: 0,
+                Tax: 0
             )).ToList();
 
             long subTotalCents = itemRequests.Sum(i => (long)Math.Round(i.Quantity * i.Price, MidpointRounding.AwayFromZero));

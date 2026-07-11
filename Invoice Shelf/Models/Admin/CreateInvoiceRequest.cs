@@ -1,11 +1,22 @@
 namespace InvoiceShelf.Models.Admin;
 
-/// <summary>Ligne d'article envoyée dans le payload de création de facture.</summary>
+/// <summary>
+/// Ligne d'article envoyée dans le payload de création de facture.
+/// NB : côté API, DocumentItemService::createItems accède directement à
+/// $item['discount_val'] et $item['tax'] (sans valeur par défaut) pour
+/// calculer base_discount_val/base_tax — ces deux clés doivent donc toujours
+/// être présentes dans le JSON, même à 0, sous peine d'une erreur
+/// "Undefined array key". Ce formulaire ne gère pas encore de remise ou de
+/// taxe par article : elles sont envoyées à 0.
+/// </summary>
 public record CreateInvoiceItemRequest(
-    [property: JsonPropertyName("name")]        string  Name,
-    [property: JsonPropertyName("description")] string? Description,
-    [property: JsonPropertyName("quantity")]     decimal Quantity,
-    [property: JsonPropertyName("price")]        long    Price
+    [property: JsonPropertyName("name")]          string  Name,
+    [property: JsonPropertyName("description")]   string? Description,
+    [property: JsonPropertyName("quantity")]       decimal Quantity,
+    [property: JsonPropertyName("price")]          long    Price,
+    [property: JsonPropertyName("discount")]       decimal Discount = 0,
+    [property: JsonPropertyName("discount_val")]   long    DiscountValue = 0,
+    [property: JsonPropertyName("tax")]            long    Tax = 0
 );
 
 /// <summary>
