@@ -17,6 +17,10 @@ Application mobile cross-platform pour [InvoiceShelf](https://invoiceshelf.com).
 | **Taxes** | Types de taxes (simples, composées, collectives) |
 | **Compte & Entreprise** | Paramètres utilisateur et informations entreprise |
 
+## 📝 À faire
+
+- [ ] Support Tablette — planifié, pas encore prêt
+
 ## 🏗️ Architecture
 
 ```
