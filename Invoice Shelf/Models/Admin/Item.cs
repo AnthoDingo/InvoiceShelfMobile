@@ -12,9 +12,16 @@ public record Item(
     [property: JsonPropertyName("discount_val")]         decimal  DiscountValue,
     [property: JsonPropertyName("tax")]                  decimal  Tax,
     [property: JsonPropertyName("total")]                decimal  Total,
-    [property: JsonPropertyName("invoice_id")]           int      InvoiceId,
-    [property: JsonPropertyName("item_id")]              int      ItemId,
-    [property: JsonPropertyName("company_id")]           int      CompanyId,
+    // Nullable : absent des lignes de devis (EstimateItemResource n'expose que
+    // "estimate_id", pas "invoice_id") et nullable en base pour les lignes de
+    // facture issues d'une facture récurrente (voir migration invoice_items).
+    [property: JsonPropertyName("invoice_id")]           int?     InvoiceId,
+    // Nullable : "item_id" est la clé étrangère facultative vers le catalogue
+    // d'articles (items table). Une ligne saisie manuellement (sans article de
+    // catalogue sélectionné, ex. "Diagnostic") a item_id = null en base.
+    [property: JsonPropertyName("item_id")]              int?     ItemId,
+    // Nullable en base (voir migrations estimate_items/invoice_items).
+    [property: JsonPropertyName("company_id")]           int?     CompanyId,
     [property: JsonPropertyName("base_price")]           decimal  BasePrice,
     [property: JsonPropertyName("exchange_rate")]         decimal  ExchangeRate,
     [property: JsonPropertyName("base_discount_val")]    decimal  BaseDiscountValue,

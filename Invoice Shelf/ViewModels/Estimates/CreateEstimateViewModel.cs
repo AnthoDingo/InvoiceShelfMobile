@@ -3,22 +3,25 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using InvoiceShelf.Models.Admin;
 using InvoiceShelf.Services;
+using InvoiceShelf.ViewModels.Invoices;
 
-namespace InvoiceShelf.ViewModels.Invoices;
+namespace InvoiceShelf.ViewModels.Estimates;
 
 /// <summary>
-/// Formulaire de création d'une nouvelle facture (brouillon).
-/// Ouvert depuis InvoicesPage via le bouton "+".
+/// Formulaire de création d'un nouveau devis (brouillon).
+/// Ouvert depuis EstimatesPage via le bouton "+".
+/// Réutilise InvoiceLineItemViewModel et CustomFieldInputViewModel (génériques,
+/// partagés avec le formulaire de création de facture).
 /// </summary>
-public partial class CreateInvoiceViewModel : ObservableObject
+public partial class CreateEstimateViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
     private readonly ICacheService _cacheService;
 
     // Utilisé en repli si le serveur n'expose aucun template (ne devrait pas arriver).
-    private const string FallbackTemplateName = "invoice1";
+    private const string FallbackTemplateName = "estimate1";
 
-    public CreateInvoiceViewModel(ApiService apiService, ICacheService cacheService)
+    public CreateEstimateViewModel(ApiService apiService, ICacheService cacheService)
     {
         _apiService = apiService;
         _cacheService = cacheService;
@@ -34,27 +37,27 @@ public partial class CreateInvoiceViewModel : ObservableObject
     private Customer? _selectedCustomer;
 
     [ObservableProperty]
-    private List<InvoiceTemplate> _templates = [];
+    private List<EstimateTemplate> _templates = [];
 
     [ObservableProperty]
-    private InvoiceTemplate? _selectedTemplate;
+    private EstimateTemplate? _selectedTemplate;
 
     [ObservableProperty]
     private List<CatalogItem> _catalogItems = [];
 
     public ObservableCollection<CustomFieldInputViewModel> CustomFields { get; } = [];
 
-    /// <summary>Vrai si le serveur expose au moins un champ personnalisé pour les factures (section masquée sinon).</summary>
+    /// <summary>Vrai si le serveur expose au moins un champ personnalisé pour les devis (section masquée sinon).</summary>
     public bool HasCustomFields => CustomFields.Count > 0;
 
     [ObservableProperty]
-    private DateTime _invoiceDate = DateTime.Today;
+    private DateTime _estimateDate = DateTime.Today;
 
     [ObservableProperty]
-    private DateTime _dueDate = DateTime.Today.AddDays(30);
+    private DateTime _expiryDate = DateTime.Today.AddDays(30);
 
     [ObservableProperty]
-    private string _invoiceNumber = string.Empty;
+    private string _estimateNumber = string.Empty;
 
     [ObservableProperty]
     private string? _notes;
@@ -98,19 +101,19 @@ public partial class CreateInvoiceViewModel : ObservableObject
         ErrorMessage = null;
         try
         {
-            Task<List<Customer>> customersTask    = _apiService.GetCustomers();
-            Task<string?> nextNumberTask          = _apiService.GetNextInvoiceNumber();
-            Task<List<InvoiceTemplate>> templatesTask   = _apiService.GetInvoiceTemplates();
-            Task<List<CatalogItem>> catalogItemsTask    = _apiService.GetCatalogItems();
-            Task<List<CustomField>> customFieldsTask    = _apiService.GetCustomFields("Invoice");
+            Task<List<Customer>> customersTask          = _apiService.GetCustomers();
+            Task<string?> nextNumberTask                = _apiService.GetNextEstimateNumber();
+            Task<List<EstimateTemplate>> templatesTask   = _apiService.GetEstimateTemplates();
+            Task<List<CatalogItem>> catalogItemsTask     = _apiService.GetCatalogItems();
+            Task<List<CustomField>> customFieldsTask     = _apiService.GetCustomFields("Estimate");
             await Task.WhenAll(customersTask, nextNumberTask, templatesTask, catalogItemsTask, customFieldsTask);
 
             Customers = customersTask.Result;
-            InvoiceNumber = nextNumberTask.Result ?? string.Empty;
+            EstimateNumber = nextNumberTask.Result ?? string.Empty;
             Templates = templatesTask.Result;
             CatalogItems = catalogItemsTask.Result;
 
-            // Champs personnalisés définis côté serveur pour les factures (Réglages
+            // Champs personnalisés définis côté serveur pour les devis (Réglages
             // > Champs personnalisés d'InvoiceShelf). Triés par "order" comme sur le
             // front web (voir CreateCustomFields.vue).
             CustomFields.Clear();
@@ -166,9 +169,9 @@ public partial class CreateInvoiceViewModel : ObservableObject
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(InvoiceNumber))
+        if (string.IsNullOrWhiteSpace(EstimateNumber))
         {
-            ErrorMessage = "Le numéro de facture est requis.";
+            ErrorMessage = "Le numéro de devis est requis.";
             return;
         }
 
@@ -191,7 +194,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
         IsSaving = true;
         try
         {
-            List<CreateInvoiceItemRequest> itemRequests = validItems.Select(i => new CreateInvoiceItemRequest(
+            List<CreateEstimateItemRequest> itemRequests = validItems.Select(i => new CreateEstimateItemRequest(
                 Name: i.Name.Trim(),
                 Description: string.IsNullOrWhiteSpace(i.Description) ? null : i.Description.Trim(),
                 Quantity: i.ParsedQuantity,
@@ -206,16 +209,16 @@ public partial class CreateInvoiceViewModel : ObservableObject
 
             // Un champ optionnel laissé vide n'est pas transmis (BuildValue() renvoie
             // null) : le serveur ne crée alors aucune CustomFieldValue pour lui.
-            List<CreateInvoiceCustomFieldRequest> customFieldRequests = CustomFields
-                .Select(f => new CreateInvoiceCustomFieldRequest(f.Definition.Id, f.BuildValue()))
+            List<CreateEstimateCustomFieldRequest> customFieldRequests = CustomFields
+                .Select(f => new CreateEstimateCustomFieldRequest(f.Definition.Id, f.BuildValue()))
                 .Where(f => f.Value is not null)
                 .ToList();
 
-            CreateInvoiceRequest request = new CreateInvoiceRequest(
-                InvoiceDate: InvoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                DueDate: DueDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            CreateEstimateRequest request = new CreateEstimateRequest(
+                EstimateDate: EstimateDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                ExpiryDate: ExpiryDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 CustomerId: SelectedCustomer.Id,
-                InvoiceNumber: InvoiceNumber.Trim(),
+                EstimateNumber: EstimateNumber.Trim(),
                 Discount: 0,
                 DiscountValue: 0,
                 SubTotal: subTotalCents,
@@ -228,24 +231,24 @@ public partial class CreateInvoiceViewModel : ObservableObject
                 CustomFields: customFieldRequests.Count > 0 ? customFieldRequests : null
             );
 
-            // Ne pas inclure "invoiceSend" dans le payload : côté API, son absence
-            // fait retomber le statut sur Invoice::STATUS_DRAFT (voir
-            // InvoicesRequest::getInvoicePayload). La facture est donc toujours
-            // créée en brouillon depuis ce formulaire ; l'envoi au client se fait
-            // ensuite séparément (POST /invoices/{id}/send).
-            (Invoice? invoice, string? error) = await _apiService.CreateInvoice(request);
+            // Ne pas inclure "estimateSend" dans le payload : côté API, son absence
+            // fait retomber le statut sur Estimate::STATUS_DRAFT (voir
+            // EstimatesRequest::getEstimatePayload). Le devis est donc toujours
+            // créé en brouillon depuis ce formulaire ; l'envoi au client se fait
+            // ensuite séparément (POST /estimates/{id}/send).
+            (Estimate? estimate, string? error) = await _apiService.CreateEstimate(request);
 
-            if (invoice is null)
+            if (estimate is null)
             {
-                ErrorMessage = error ?? "Échec de la création de la facture.";
+                ErrorMessage = error ?? "Échec de la création du devis.";
                 return;
             }
 
-            // La liste des factures mise en cache est désormais périmée.
-            await _cacheService.RemoveAsync(CacheKeys.Invoices);
+            // La liste des devis mise en cache est désormais périmée.
+            await _cacheService.RemoveAsync(CacheKeys.Estimates);
 
             await Shell.Current.GoToAsync("..");
-            await Shell.Current.GoToAsync($"InvoiceDetailPage?invoiceId={invoice.Id}");
+            await Shell.Current.GoToAsync($"EstimateDetailPage?estimateId={estimate.Id}");
         }
         catch (Exception ex)
         {

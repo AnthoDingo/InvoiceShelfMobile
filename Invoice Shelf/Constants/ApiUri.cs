@@ -44,7 +44,8 @@ namespace InvoiceShelf.Constants
         #endregion
 
         #region Templates
-        public static string InvoiceTemplates => "/api/v1/invoices/templates";
+        public static string InvoiceTemplates  => "/api/v1/invoices/templates";
+        public static string EstimateTemplates => "/api/v1/estimates/templates";
         #endregion
 
         #region Champs personnalisés
