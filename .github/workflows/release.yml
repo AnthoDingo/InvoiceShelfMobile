@@ -53,7 +53,6 @@ jobs:
           --configuration Release
           --framework net10.0-android
           --no-restore
-          -p:AndroidPackageFormats=aab;apk
           -p:AndroidSigningKeyStore="${{ runner.temp }}/invoiceshelf.keystore"
           -p:AndroidSigningKeyAlias="${{ secrets.KEY_ALIAS }}"
           -p:AndroidSigningKeyPass="${{ secrets.KEY_PASSWORD }}"
