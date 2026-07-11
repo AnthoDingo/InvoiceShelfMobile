@@ -99,5 +99,21 @@
             </tabview:TabViewItem>
 
         </tabview:TabView>
+
+        <!-- Bouton flottant : nouveau devis -->
+        <Button
+            Text="+"
+            FontSize="26"
+            FontAttributes="Bold"
+            WidthRequest="56"
+            HeightRequest="56"
+            CornerRadius="28"
+            Padding="0"
+            BackgroundColor="{StaticResource Primary}"
+            TextColor="White"
+            HorizontalOptions="End"
+            VerticalOptions="End"
+            Margin="0,0,20,20"
+            Command="{Binding NewEstimateCommand}"/>
     </Grid>
 </ContentPage>

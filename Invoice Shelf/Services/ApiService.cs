@@ -310,8 +310,12 @@ public class ApiService
     /// </summary>
     public async Task<(Invoice? Invoice, string? Error)> CreateInvoice(CreateInvoiceRequest request)
     {
-        var res = await Send<InvoiceDetail>(HttpMethod.Post, ApiUri.AllInvoices, request, authenticated: true);
-        return res.IsSuccess ? (res.Value?.Data, null) : (null, res.Error ?? "Échec de la création de la facture.");
+        ApiResponse<InvoiceDetail> res = await Send<InvoiceDetail>(HttpMethod.Post, ApiUri.AllInvoices, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la création de la facture (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
     }
 
     // ── Catalogue d'articles ────────────────────────────────────────────────
@@ -366,6 +370,42 @@ public class ApiService
         catch { return null; }
     }
 
+    /// <summary>Récupère le prochain numéro de devis auto-généré par le serveur (ex. "EST-000012").</summary>
+    public async Task<string?> GetNextEstimateNumber()
+    {
+        try
+        {
+            ApiResponse<NextNumberResponse> res = await Send<NextNumberResponse>(HttpMethod.Get, ApiUri.NextNumber("estimate"), authenticated: true);
+            return res.IsSuccess ? res.Value?.NextNumber : null;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// Crée un nouveau devis (brouillon). Retourne le devis créé si succès,
+    /// ou (null, message d'erreur) sinon.
+    /// </summary>
+    public async Task<(Estimate? Estimate, string? Error)> CreateEstimate(CreateEstimateRequest request)
+    {
+        ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Post, ApiUri.AllEstimates, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la création du devis (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
+    }
+
+    /// <summary>Liste les templates PDF disponibles pour les devis (natifs et personnalisés).</summary>
+    public async Task<List<EstimateTemplate>> GetEstimateTemplates()
+    {
+        try
+        {
+            ApiResponse<EstimateTemplatesResponse> res = await Send<EstimateTemplatesResponse>(HttpMethod.Get, ApiUri.EstimateTemplates, authenticated: true);
+            return res.IsSuccess ? res.Value?.EstimateTemplates ?? [] : [];
+        }
+        catch { return []; }
+    }
+
     // ── Clients ──────────────────────────────────────────────────────────────
 
     public async Task<List<Customer>> GetCustomers()
@@ -407,8 +447,12 @@ public class ApiService
     /// </summary>
     public async Task<(Payment? Payment, string? Error)> CreatePayment(CreatePaymentRequest request)
     {
-        var res = await Send<PaymentDetail>(HttpMethod.Post, ApiUri.AllPayments, request, authenticated: true);
-        return res.IsSuccess ? (res.Value?.Data, null) : (null, res.Error ?? "Échec de l'enregistrement du paiement.");
+        ApiResponse<PaymentDetail> res = await Send<PaymentDetail>(HttpMethod.Post, ApiUri.AllPayments, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de l'enregistrement du paiement (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
     }
 
     // ── Dépenses ──────────────────────────────────────────────────────────────

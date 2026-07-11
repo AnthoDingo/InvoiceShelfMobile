@@ -69,4 +69,8 @@ public partial class EstimatesViewModel : ObservableObject
     [RelayCommand]
     private async Task OpenEstimate(Estimate estimate)
         => await Shell.Current.GoToAsync($"EstimateDetailPage?estimateId={estimate.Id}");
+
+    [RelayCommand]
+    private async Task NewEstimate()
+        => await Shell.Current.GoToAsync("CreateEstimatePage");
 }

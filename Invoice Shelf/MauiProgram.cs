@@ -97,6 +97,8 @@ namespace InvoiceShelf
             services.AddTransient<CreateInvoiceViewModel>();
             services.AddTransient<EstimateDetailPage>();
             services.AddTransient<EstimateDetailViewModel>();
+            services.AddTransient<CreateEstimatePage>();
+            services.AddTransient<CreateEstimateViewModel>();
             services.AddTransient<CustomerDetailPage>();
             services.AddTransient<CustomerDetailViewModel>();
 
