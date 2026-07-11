@@ -28,7 +28,7 @@
                 IsVisible="{Binding IsEmpty, Converter={StaticResource InverseBoolConverter}}">
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:Payment">
-                        <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                        <Grid Padding="16,14" Margin="0,-8,0,0" ColumnDefinitions="*,Auto">
 
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
                                 <Label
@@ -65,7 +65,7 @@
                                 Grid.ColumnSpan="2"
                                 VerticalOptions="End"
                                 HeightRequest="1"
-                                Margin="-16,8,-16,0"
+                                Margin="-16,8,-16,-8"
                                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
                         </Grid>
                     </DataTemplate>
