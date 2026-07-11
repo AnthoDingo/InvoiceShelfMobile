@@ -7,7 +7,7 @@
              x:Class="InvoiceShelf.Views.Estimates.CreateEstimatePage"
              x:Name="Page"
              x:DataType="viewmodels:CreateEstimateViewModel"
-             Title="Nouveau devis">
+             Title="{Binding Title}">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -233,6 +233,7 @@
                 <Label
                     Text="Ce devis sera enregistré comme brouillon. Vous pourrez l'envoyer au client ensuite."
                     FontSize="12" FontAttributes="Italic"
+                    IsVisible="{Binding IsEditMode, Converter={StaticResource InverseBoolConverter}}"
                     TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
 
                 <!-- Actions -->
@@ -246,7 +247,7 @@
                         IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
                     <Button
                         Grid.Column="1"
-                        Text="Enregistrer en brouillon"
+                        Text="{Binding SaveButtonText}"
                         FontSize="13"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="White"

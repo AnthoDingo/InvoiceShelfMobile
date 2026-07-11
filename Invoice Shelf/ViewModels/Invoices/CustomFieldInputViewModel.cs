@@ -66,6 +66,51 @@ public partial class CustomFieldInputViewModel : ObservableObject
     [ObservableProperty]
     private TimeSpan _timeValue = DateTime.Now.TimeOfDay;
 
+    /// <summary>
+    /// Pré-remplit ce champ avec une valeur déjà enregistrée (mode édition), en
+    /// utilisant la colonne de réponse correspondant au type (voir
+    /// getCustomFieldValueKey côté API). Sans effet si le champ n'a aucune
+    /// valeur enregistrée pour ce type (laisse la valeur par défaut du serveur,
+    /// déjà appliquée par le constructeur).
+    /// </summary>
+    public void ApplyExistingValue(Field value)
+    {
+        switch (Type)
+        {
+            case "Switch":
+                if (value.BooleanAnswer is bool boolAnswer)
+                    BoolValue = boolAnswer;
+                break;
+
+            case "Number":
+                if (value.NumberAnswer is decimal numberAnswer)
+                    TextValue = numberAnswer.ToString(CultureInfo.InvariantCulture);
+                break;
+
+            case "Date":
+                if (DateTime.TryParse(value.DateAnswer, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateAnswer))
+                    DateValue = dateAnswer.Date;
+                break;
+
+            case "Time":
+                if (TimeSpan.TryParse(value.TimeAnswer, CultureInfo.InvariantCulture, out TimeSpan timeAnswer))
+                    TimeValue = timeAnswer;
+                break;
+
+            case "DateTime":
+                if (DateTime.TryParse(value.DateTimeAnswer, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTimeAnswer))
+                {
+                    DateValue = dateTimeAnswer.Date;
+                    TimeValue = dateTimeAnswer.TimeOfDay;
+                }
+                break;
+
+            default: // Input, TextArea, Phone, Url, Dropdown : string_answer ou number_answer (Phone)
+                TextValue = value.StringAnswer ?? (value.NumberAnswer?.ToString(CultureInfo.InvariantCulture));
+                break;
+        }
+    }
+
     /// <summary>Faux uniquement si ce champ est obligatoire et n'a pas de valeur saisie.</summary>
     public bool IsValid
     {
