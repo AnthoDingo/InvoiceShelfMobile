@@ -1,0 +1,76 @@
+## .NET / C# gitignore
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vcxproj.filters
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# MAUI / Xamarin
+*.mobileprovision
+*.provisionprofile
+*.keystore
+local.properties
+google-services.json
+
+# User specific
+*.rsuser
+.localhistory/
+.vs/
+
+# macOS
+.DS_Store
+*.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Rider
+.idea
+
+# VS Code
+.vscode/
+
+# Temporary files
+~$*
+*.tmp
+*.temp
+*.bak
+*.swp
+*.orig
+
+API/*
+*/build.ps1

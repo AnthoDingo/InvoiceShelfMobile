@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="InvoiceShelf.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:InvoiceShelf.Views.Pages"
+    xmlns:auth="clr-namespace:InvoiceShelf.Views.Auth"
+    xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+    Shell.FlyoutBehavior="Disabled"
+    Title="InvoiceShelf">
+
+    <!-- Flux auth (sans onglets) -->
+    <ShellContent Route="SplashPage"     ContentTemplate="{DataTemplate pages:SplashPage}" />
+    <ShellContent Route="EndpointPage"   ContentTemplate="{DataTemplate auth:EndpointPage}" />
+    <ShellContent Route="CredentialPage" ContentTemplate="{DataTemplate auth:CredentialPage}" />
+    <ShellContent Route="LockPage"       ContentTemplate="{DataTemplate pages:LockPage}" />
+
+    <!-- Application principale (onglets) -->
+    <TabBar Route="HomePage">
+        <ShellContent
+            Title="Accueil"
+            Icon="{mi:Material Icon=Home}"
+            Route="DashboardPage"
+            ContentTemplate="{DataTemplate pages:DashboardPage}"/>
+        <ShellContent
+            Title="Factures"
+            Icon="{mi:Material Icon=Description}"
+            Route="InvoicesPage"
+            ContentTemplate="{DataTemplate pages:InvoicesPage}"/>
+        <ShellContent
+            Title="Devis"
+            Icon="{mi:Material Icon=RequestQuote}"
+            Route="EstimatesPage"
+            ContentTemplate="{DataTemplate pages:EstimatesPage}"/>
+        <ShellContent
+            Title="Clients"
+            Icon="{mi:Material Icon=SupervisorAccount}"
+            Route="CustomersPage"
+            ContentTemplate="{DataTemplate pages:CustomersPage}"/>
+        <ShellContent
+            Title="Paiements"
+            Icon="{mi:Material Icon=AccountBalanceWallet}"
+            Route="PaymentsPage"
+            ContentTemplate="{DataTemplate pages:PaymentsPage}"/>
+        <ShellContent
+            Title="Dépenses"
+            Icon="{mi:Material Icon=Receipt}"
+            Route="ExpensesPage"
+            ContentTemplate="{DataTemplate pages:ExpensesPage}"/>
+        <ShellContent
+            Title="Plus"
+            Icon="{mi:Material Icon=Menu}"
+            Route="MorePage"
+            ContentTemplate="{DataTemplate pages:MorePage}"/>
+    </TabBar>
+
+</Shell>

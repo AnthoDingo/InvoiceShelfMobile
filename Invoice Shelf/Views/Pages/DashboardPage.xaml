@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
+             xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             xmlns:controls="clr-namespace:InvoiceShelf.Controls"
+             x:Class="InvoiceShelf.Views.Pages.DashboardPage"
+             x:DataType="viewmodels:DashboardViewModel"
+             Title="Accueil"
+             Shell.NavBarIsVisible="False">
+
+    <Shell.TitleView>
+        <ContentView/>
+    </Shell.TitleView>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter     x:Key="IsNotNullConverter"/>
+            <helpers:ShortDateConverter     x:Key="ShortDateConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <RefreshView Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsLoading}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="0" Padding="0,0,0,48">
+
+                <!-- Bandeau de bienvenue -->
+                <Border
+                    StrokeThickness="0"
+                    StrokeShape="Rectangle"
+                    BackgroundColor="{StaticResource Primary}"
+                    Padding="20,28,20,40">
+                    <VerticalStackLayout Spacing="4">
+                        <Label
+                            Text="{Binding GreetingName, StringFormat='Bonjour, {0} 👋'}"
+                            TextColor="White" FontSize="26" FontAttributes="Bold"/>
+                        <Label
+                            Text="Voici un résumé de votre activité"
+                            TextColor="White" Opacity="0.75" FontSize="14"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Cartes financières (chevauchent le bandeau) -->
+                <Grid Margin="16,-22,16,0" ColumnDefinitions="*,*" ColumnSpacing="10">
+
+                    <Border Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                            Padding="16,14">
+                        <Border.Shadow>
+                            <Shadow Brush="{StaticResource Gray300Brush}" Offset="0,4" Radius="12" Opacity="0.18"/>
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="À ENCAISSER" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{StaticResource Gray400}" CharacterSpacing="1"/>
+                            <Label Text="{Binding TotalDue}" FontSize="22" FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusOverdue}" LineBreakMode="TailTruncation"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Column="1" StrokeThickness="0" StrokeShape="RoundRectangle 14"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                            Padding="16,14">
+                        <Border.Shadow>
+                            <Shadow Brush="{StaticResource Gray300Brush}" Offset="0,4" Radius="12" Opacity="0.18"/>
+                        </Border.Shadow>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="ENCAISSÉ" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{StaticResource Gray400}" CharacterSpacing="1"/>
+                            <Label Text="{Binding TotalPaid}" FontSize="22" FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusCompleted}" LineBreakMode="TailTruncation"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Compteurs par statut -->
+                <Grid Margin="16,10,16,0" ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                    <Border Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                            Padding="12,10">
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <Label Text="{Binding DraftCount}" FontSize="24" FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusDraft}" HorizontalTextAlignment="Center"/>
+                            <Label Text="Brouillons" FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="1" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                            Padding="12,10">
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <Label Text="{Binding SentCount}" FontSize="24" FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusSent}" HorizontalTextAlignment="Center"/>
+                            <Label Text="Envoyées" FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+                    <Border Grid.Column="2" StrokeThickness="0" StrokeShape="RoundRectangle 12"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                            Padding="12,10">
+                        <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                            <Label Text="{Binding OverdueCount}" FontSize="24" FontAttributes="Bold"
+                                   TextColor="{StaticResource StatusOverdue}" HorizontalTextAlignment="Center"/>
+                            <Label Text="En retard" FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- Titre section -->
+                <Label Text="DERNIÈRES FACTURES" FontSize="11" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                       CharacterSpacing="1" Margin="20,22,0,8"/>
+
+                <!-- Liste factures récentes -->
+                <Border
+                    Margin="16,0"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                    Padding="0">
+                    <controls:InvoiceListView
+                        ItemsSource="{Binding RecentInvoices}"
+                        IsRefreshing="{Binding IsLoading}"
+                        RefreshCommand="{Binding RefreshCommand}"
+                        SelectionCommand="{Binding OpenInvoiceCommand}"
+                        EmptyMessage="Aucune facture récente"/>
+                    <!--<CollectionView ItemsSource="{Binding RecentInvoices}">
+                        <CollectionView.EmptyView>
+                            <Label Text="Aucune facture récente" FontSize="14" Margin="20,20"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   HorizontalTextAlignment="Center"/>
+                        </CollectionView.EmptyView>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Invoice">
+                                <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                        <Label Text="{Binding Customer.Name}" FontSize="15" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+                                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
+                                            <Label Grid.Column="0" Text="{Binding InvoiceNumber}" FontSize="12"
+                                                   TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                            <Border Grid.Column="1"
+                                                    Stroke="{Binding StatusColor}" StrokeShape="RoundRectangle 3"
+                                                    StrokeThickness="1" BackgroundColor="Transparent" Padding="6,1">
+                                                <Label Text="{Binding FormattedStatus}" FontSize="10"
+                                                       FontAttributes="Bold" TextColor="{Binding StatusColor}"/>
+                                            </Border>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="4">
+                                        <Label Text="{Binding FormattedTotal}" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="End"/>
+                                        <Label Text="{Binding InvoiceDate, Converter={StaticResource ShortDateConverter}}"
+                                               FontSize="12" HorizontalTextAlignment="End"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                    </VerticalStackLayout>
+                                    <BoxView Grid.ColumnSpan="2" VerticalOptions="End" HeightRequest="1"
+                                             Margin="-16,8,-16,-14"
+                                             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:DashboardViewModel}}, Path=OpenInvoiceCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </Grid.GestureRecognizers>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>-->
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

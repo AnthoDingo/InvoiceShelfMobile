@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Controls.EstimateListView"
+             x:Name="Root">
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:ShortDateConverter x:Key="ShortDateConverter"/>
+        </ResourceDictionary>
+    </ContentView.Resources>
+
+    <RefreshView
+        IsRefreshing="{Binding IsRefreshing, Mode=OneWay, Source={x:Reference Root}}"
+        Command="{Binding RefreshCommand, Source={x:Reference Root}}">
+
+        <Grid>
+
+            <!-- Estimate list -->
+            <CollectionView
+                ItemsSource="{Binding ItemsSource, Source={x:Reference Root}}"
+                SelectionMode="None"
+                IsVisible="{Binding IsEmpty, Source={x:Reference Root}, Converter={StaticResource InverseBoolConverter}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Estimate">
+                        <Grid Padding="20,16" ColumnDefinitions="*,Auto">
+
+                            <!-- Left : client + numéro + statut -->
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+
+                                <Label Text="{Binding Customer.Name}" FontSize="15" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+
+                                <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="8">
+                                    <Label
+                                        Grid.Column="0"
+                                        Text="{Binding EstimateNumber}"
+                                        FontSize="12"
+                                        TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                    <Border
+                                        Grid.Column="1"
+                                        Stroke="{Binding StatusColor}"
+                                        StrokeShape="RoundRectangle 3"
+                                        StrokeThickness="1" BackgroundColor="Transparent" Padding="6,1">
+                                    <Label
+                                        Text="{Binding FormattedStatus}" FontSize="10"
+                                        FontAttributes="Bold" TextColor="{Binding StatusColor}"/>
+                                    </Border>
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <!-- Right : montant + date -->
+                            <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="5" VerticalOptions="Center">
+                                <Label
+                                    Text="{Binding FormattedTotal}"
+                                    FontSize="15"
+                                    FontAttributes="Bold"
+                                    HorizontalTextAlignment="End"/>
+                                <Label
+                                    Text="{Binding EstimateDate, Converter={StaticResource ShortDateConverter}}"
+                                    FontSize="13"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                    HorizontalTextAlignment="End"/>
+                            </VerticalStackLayout>
+
+                            <!-- Séparateur -->
+                            <BoxView
+                                Grid.ColumnSpan="2"
+                                VerticalOptions="End"
+                                HeightRequest="1"
+                                Margin="0,8,0,-16"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
+
+                            <!-- Tap zone pleine largeur -->
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding SelectionCommand, Source={x:Reference Root}}"
+                                    CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- État vide -->
+            <VerticalStackLayout
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Padding="40,0"
+                Spacing="12"
+                IsVisible="{Binding IsEmpty, Source={x:Reference Root}}">
+                <Image
+                    Aspect="AspectFit"
+                    HeightRequest="200"
+                    Source="empty_invoices_icon.png"/>
+                <Label
+                    HorizontalTextAlignment="Center"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    Text="{Binding EmptyMessage, Source={x:Reference Root}}"/>
+                <Label
+                    HorizontalTextAlignment="Center"
+                    FontSize="14"
+                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                    Text="{Binding EmptySubMessage, Source={x:Reference Root}}"/>
+            </VerticalStackLayout>
+
+        </Grid>
+    </RefreshView>
+</ContentView>

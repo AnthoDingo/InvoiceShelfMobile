@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
+             xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Pages.CustomerDetailPage"
+             x:DataType="viewmodels:CustomerDetailViewModel"
+             Title="{Binding Customer.Name}">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter     x:Key="IsNotNullConverter"/>
+            <helpers:ShortDateConverter     x:Key="ShortDateConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+
+        <!-- Chargement -->
+        <VerticalStackLayout
+            VerticalOptions="Center" HorizontalOptions="Center" Spacing="14"
+            IsVisible="{Binding IsLoading}">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
+            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+        </VerticalStackLayout>
+
+        <!-- Contenu -->
+        <ScrollView IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <VerticalStackLayout Spacing="0" Padding="0,0,0,48">
+
+                <!-- En-tête client -->
+                <Border
+                    Margin="16,16,16,0"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 16"
+                    BackgroundColor="{StaticResource Primary}"
+                    Padding="20,24">
+                    <Grid ColumnDefinitions="Auto,*">
+
+                        <!-- Avatar -->
+                        <Border
+                            Grid.Column="0"
+                            WidthRequest="60" HeightRequest="60"
+                            StrokeShape="RoundRectangle 30"
+                            StrokeThickness="0"
+                            BackgroundColor="White"
+                            Opacity="0.2"
+                            VerticalOptions="Center"/>
+                        <Label
+                            HorizontalTextAlignment="Center"
+                            Grid.Column="0"
+                            Text="{Binding Customer.Initials}"
+                            TextColor="White" FontAttributes="Bold" FontSize="22"
+                            HorizontalOptions="Center" VerticalOptions="Center"
+                            WidthRequest="60"/>
+
+                        <!-- Infos -->
+                        <VerticalStackLayout Grid.Column="1" Margin="16,0,0,0" Spacing="5" VerticalOptions="Center">
+                            <Label Text="{Binding Customer.Name}" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                            <Label Text="{Binding Customer.Email}" TextColor="White" Opacity="0.8" FontSize="13"
+                                   IsVisible="{Binding Customer.Email, Converter={StaticResource IsNotNullConverter}}"/>
+                            <Label Text="{Binding Customer.Phone}" TextColor="White" Opacity="0.75" FontSize="13"
+                                   IsVisible="{Binding Customer.Phone, Converter={StaticResource IsNotNullConverter}}"/>
+                            <Label Text="{Binding Customer.CompanyName}" TextColor="White" Opacity="0.7" FontSize="12"
+                                   IsVisible="{Binding Customer.CompanyName, Converter={StaticResource IsNotNullConverter}}"/>
+                        </VerticalStackLayout>
+
+                    </Grid>
+                </Border>
+
+                <!-- Résumé financier -->
+                <Grid
+                    Margin="16,12,16,0"
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="10">
+
+                    <Border
+                        Grid.Column="0"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                        StrokeShape="RoundRectangle 12"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                        Padding="14,12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="FACTURES" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   CharacterSpacing="1"/>
+                            <Label Text="{Binding InvoiceCount}" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource Primary}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border
+                        Grid.Column="1"
+                        StrokeThickness="1"
+                        Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                        StrokeShape="RoundRectangle 12"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                        Padding="14,12">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="SOLDE DÛ" FontSize="10" FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                   CharacterSpacing="1"/>
+                            <Label Text="{Binding FormattedDueAmount}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource StatusOverdue}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                </Grid>
+
+                <!-- Factures du client -->
+                <Label Text="FACTURES" FontSize="11" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                       CharacterSpacing="1"
+                       Margin="20,20,0,8"/>
+
+                <Border
+                    Margin="16,0"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                    Padding="0"
+                    IsVisible="{Binding HasInvoices}">
+                    <CollectionView ItemsSource="{Binding Invoices}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:Invoice">
+                                <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                                    <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                        <Label Text="{Binding InvoiceNumber}" FontSize="15" FontAttributes="Bold"/>
+                                        <Border
+                                            Stroke="{Binding StatusColor}"
+                                            StrokeShape="RoundRectangle 4"
+                                            StrokeThickness="1" BackgroundColor="Transparent"
+                                            HorizontalOptions="Start" Padding="8,2">
+                                            <Label Text="{Binding FormattedStatus}" FontSize="11"
+                                                   FontAttributes="Bold" TextColor="{Binding StatusColor}"/>
+                                        </Border>
+                                    </VerticalStackLayout>
+                                    <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="4">
+                                        <Label Text="{Binding FormattedTotal}" FontSize="15" FontAttributes="Bold" HorizontalTextAlignment="End"/>
+                                        <Label Text="{Binding InvoiceDate, Converter={StaticResource ShortDateConverter}}"
+                                               FontSize="13" HorizontalTextAlignment="End"
+                                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                    </VerticalStackLayout>
+                                    <BoxView Grid.ColumnSpan="2" VerticalOptions="End" HeightRequest="1"
+                                             Margin="-16,8,-16,-14"
+                                             BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CustomerDetailViewModel}}, Path=OpenInvoiceCommand}"
+                                            CommandParameter="{Binding .}"/>
+                                    </Grid.GestureRecognizers>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </Border>
+
+                <!-- État vide factures -->
+                <VerticalStackLayout
+                    VerticalOptions="Center" HorizontalOptions="Center"
+                    Padding="40,20" Spacing="8"
+                    IsVisible="{Binding HasInvoices, Converter={StaticResource InverseBoolConverter}}">
+                    <Label HorizontalTextAlignment="Center" FontSize="15"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           Text="Aucune facture pour ce client"/>
+                </VerticalStackLayout>
+
+                <!-- Adresse de facturation -->
+                <Label Text="ADRESSE" FontSize="11" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                       CharacterSpacing="1"
+                       Margin="20,20,0,8"
+                       IsVisible="{Binding Customer.Billing, Converter={StaticResource IsNotNullConverter}}"/>
+
+                <Border
+                    Margin="16,0"
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                    Padding="16"
+                    IsVisible="{Binding Customer.Billing, Converter={StaticResource IsNotNullConverter}}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding Customer.Billing.AddressStreet1}" FontSize="14"/>
+                        <Label Text="{Binding Customer.Billing.AddressStreet2}" FontSize="14"
+                               IsVisible="{Binding Customer.Billing.AddressStreet2, Converter={StaticResource IsNotNullConverter}}"/>
+                        <Label FontSize="14">
+                            <Label.FormattedText>
+                                <FormattedString>
+                                    <Span Text="{Binding Customer.Billing.Zip}"/>
+                                    <Span Text=" "/>
+                                    <Span Text="{Binding Customer.Billing.City}"/>
+                                </FormattedString>
+                            </Label.FormattedText>
+                        </Label>
+                        <Label Text="{Binding Customer.Billing.State}" FontSize="14"
+                               IsVisible="{Binding Customer.Billing.State, Converter={StaticResource IsNotNullConverter}}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

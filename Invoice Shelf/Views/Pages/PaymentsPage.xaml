@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
+             xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Pages.PaymentsPage"
+             x:DataType="viewmodels:PaymentsViewModel"
+             Title="Paiements">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:ShortDateConverter  x:Key="ShortDateConverter"/>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter  x:Key="IsNotNullConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <RefreshView
+        IsRefreshing="{Binding IsRefreshing}"
+        Command="{Binding RefreshCommand}">
+
+        <Grid>
+
+            <!-- Payments list -->
+            <CollectionView
+                ItemsSource="{Binding Payments}"
+                IsVisible="{Binding IsEmpty, Converter={StaticResource InverseBoolConverter}}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Payment">
+                        <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label
+                                    Text="{Binding Customer.Name}"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    LineBreakMode="TailTruncation"/>
+                                <Label
+                                    Text="{Binding PaymentNumber}"
+                                    FontSize="13"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                                <Label
+                                    Text="{Binding PaymentMethod.Name}"
+                                    FontSize="12"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                    IsVisible="{Binding PaymentMethod, Converter={StaticResource IsNotNullConverter}}"/>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" HorizontalOptions="End" Spacing="4">
+                                <Label
+                                    Text="{Binding FormattedAmount}"
+                                    FontSize="16"
+                                    FontAttributes="Bold"
+                                    TextColor="{StaticResource StatusCompleted}"
+                                    HorizontalTextAlignment="End"/>
+                                <Label
+                                    Text="{Binding PaymentDate, Converter={StaticResource ShortDateConverter}}"
+                                    FontSize="13"
+                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                    HorizontalTextAlignment="End"/>
+                            </VerticalStackLayout>
+
+                            <BoxView
+                                Grid.ColumnSpan="2"
+                                VerticalOptions="End"
+                                HeightRequest="1"
+                                Margin="-16,8,-16,0"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <!-- Empty state -->
+            <VerticalStackLayout
+                VerticalOptions="Center"
+                HorizontalOptions="Center"
+                Padding="40,0"
+                Spacing="12"
+                IsVisible="{Binding IsEmpty}">
+                <Image
+                    Aspect="AspectFit"
+                    HeightRequest="200"
+                    Source="empty_invoices_icon.png"/>
+                <Label
+                    HorizontalTextAlignment="Center"
+                    FontSize="20"
+                    FontAttributes="Bold"
+                    Text="Aucun paiement"/>
+                <Label
+                    HorizontalTextAlignment="Center"
+                    FontSize="14"
+                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                    Text="Les paiements reçus apparaîtront ici."/>
+            </VerticalStackLayout>
+
+        </Grid>
+    </RefreshView>
+
+</ContentPage>

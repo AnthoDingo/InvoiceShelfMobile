@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Invoices"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Invoices.CreateInvoicePage"
+             x:Name="Page"
+             x:DataType="viewmodels:CreateInvoiceViewModel"
+             Title="Nouvelle facture">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter     x:Key="IsNotNullConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+
+        <!-- Chargement -->
+        <VerticalStackLayout
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Spacing="14"
+            IsVisible="{Binding IsLoading}">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
+            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+        </VerticalStackLayout>
+
+        <!-- Formulaire -->
+        <ScrollView IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <VerticalStackLayout Spacing="16" Padding="16,16,16,32">
+
+                <!-- Erreur -->
+                <Label
+                    Text="{Binding ErrorMessage}"
+                    TextColor="{StaticResource StatusOverdue}"
+                    FontSize="13"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"/>
+
+                <!-- Client -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Client" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding Customers}"
+                        SelectedItem="{Binding SelectedCustomer}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner un client"/>
+                </VerticalStackLayout>
+
+                <!-- Dates -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <VerticalStackLayout Grid.Column="0" Spacing="6">
+                        <Label Text="Date de facture" FontSize="12" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <DatePicker Date="{Binding InvoiceDate}"/>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout Grid.Column="1" Spacing="6">
+                        <Label Text="Date d'échéance" FontSize="12" FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                        <DatePicker Date="{Binding DueDate}"/>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- Numéro de facture -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Numéro de facture" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Entry Text="{Binding InvoiceNumber}" Placeholder="ex. INV-000012"/>
+                </VerticalStackLayout>
+
+                <!-- Template PDF -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Template" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding Templates}"
+                        SelectedItem="{Binding SelectedTemplate}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner un template"/>
+                </VerticalStackLayout>
+
+                <!-- Articles -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="ARTICLES" FontSize="11" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           CharacterSpacing="1"/>
+
+                    <CollectionView ItemsSource="{Binding Items}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:InvoiceLineItemViewModel">
+                                <Border
+                                    Margin="0,4"
+                                    StrokeThickness="1"
+                                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                                    StrokeShape="RoundRectangle 12"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                                    Padding="12">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Picker
+                                            ItemsSource="{Binding Source={x:Reference Page}, Path=BindingContext.CatalogItems}"
+                                            SelectedItem="{Binding SelectedCatalogItem}"
+                                            ItemDisplayBinding="{Binding Name}"
+                                            Title="Choisir un article existant (optionnel)"
+                                            FontSize="13"/>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Entry Grid.Column="0" Text="{Binding Name}" Placeholder="Nom de l'article"/>
+                                            <Button
+                                                Grid.Column="1"
+                                                Text="✕"
+                                                FontSize="14"
+                                                BackgroundColor="Transparent"
+                                                TextColor="{StaticResource StatusOverdue}"
+                                                WidthRequest="36" HeightRequest="36"
+                                                Padding="0"
+                                                Command="{Binding Source={x:Reference Page}, Path=BindingContext.RemoveItemCommand}"
+                                                CommandParameter="{Binding .}"/>
+                                        </Grid>
+                                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                                            <Entry Grid.Column="0" Text="{Binding Quantity}" Placeholder="Qté" Keyboard="Numeric"/>
+                                            <Entry Grid.Column="1" Text="{Binding UnitPrice}" Placeholder="Prix unit." Keyboard="Numeric"/>
+                                            <Label Grid.Column="2" Text="{Binding FormattedLineTotal}"
+                                                   VerticalOptions="Center" HorizontalTextAlignment="End"
+                                                   FontAttributes="Bold" FontSize="14"/>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <Button
+                        Text="+ Ajouter un article"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource Primary}"
+                        Command="{Binding AddItemCommand}"/>
+                </VerticalStackLayout>
+
+                <!-- Champs personnalisés (définis côté serveur) -->
+                <VerticalStackLayout Spacing="8" IsVisible="{Binding HasCustomFields}">
+                    <Label Text="CHAMPS PERSONNALISÉS" FontSize="11" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                           CharacterSpacing="1"/>
+
+                    <CollectionView ItemsSource="{Binding CustomFields}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="viewmodels:CustomFieldInputViewModel">
+                                <VerticalStackLayout Spacing="6" Margin="0,0,0,10">
+                                    <Label Text="{Binding DisplayLabel}" FontSize="12" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+
+                                    <!-- Input / Url / Phone : une seule ligne -->
+                                    <Entry Text="{Binding TextValue}"
+                                           Placeholder="{Binding Placeholder}"
+                                           IsVisible="{Binding IsSingleLineType}"/>
+
+                                    <!-- Number -->
+                                    <Entry Text="{Binding TextValue}"
+                                           Placeholder="{Binding Placeholder}"
+                                           Keyboard="Numeric"
+                                           IsVisible="{Binding IsNumberType}"/>
+
+                                    <!-- TextArea -->
+                                    <Editor Text="{Binding TextValue}"
+                                            Placeholder="{Binding Placeholder}"
+                                            HeightRequest="80" AutoSize="TextChanges"
+                                            IsVisible="{Binding IsTextAreaType}"/>
+
+                                    <!-- Dropdown -->
+                                    <Picker ItemsSource="{Binding Options}"
+                                            SelectedItem="{Binding TextValue}"
+                                            Title="{Binding Placeholder}"
+                                            IsVisible="{Binding IsDropdownType}"/>
+
+                                    <!-- Switch -->
+                                    <Switch IsToggled="{Binding BoolValue}"
+                                            HorizontalOptions="Start"
+                                            IsVisible="{Binding IsSwitchType}"/>
+
+                                    <!-- Date -->
+                                    <DatePicker Date="{Binding DateValue}"
+                                                IsVisible="{Binding IsDateType}"/>
+
+                                    <!-- Time -->
+                                    <TimePicker Time="{Binding TimeValue}"
+                                                IsVisible="{Binding IsTimeType}"/>
+
+                                    <!-- DateTime : date + heure -->
+                                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8" IsVisible="{Binding IsDateTimeType}">
+                                        <DatePicker Grid.Column="0" Date="{Binding DateValue}"/>
+                                        <TimePicker Grid.Column="1" Time="{Binding TimeValue}"/>
+                                    </Grid>
+                                </VerticalStackLayout>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Récapitulatif -->
+                <Border
+                    StrokeThickness="1"
+                    Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray50}, Dark={StaticResource Gray900}}"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="8">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Sous-total" FontSize="14"
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
+                            <Label Grid.Column="1" Text="{Binding FormattedSubTotal}" FontSize="14" HorizontalTextAlignment="End"/>
+                        </Grid>
+                        <BoxView HeightRequest="1"
+                                 BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"/>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Total" FontSize="17" FontAttributes="Bold"/>
+                            <Label Grid.Column="1" Text="{Binding FormattedTotal}"
+                                   FontSize="17" FontAttributes="Bold"
+                                   TextColor="{StaticResource Primary}" HorizontalTextAlignment="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Notes -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Notes" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Editor Text="{Binding Notes}" Placeholder="Optionnel" HeightRequest="90" AutoSize="TextChanges"/>
+                </VerticalStackLayout>
+
+                <!-- Info statut -->
+                <Label
+                    Text="Cette facture sera enregistrée comme brouillon. Vous pourrez l'envoyer au client ensuite."
+                    FontSize="12" FontAttributes="Italic"
+                    TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+
+                <!-- Actions -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,0,0,0">
+                    <Button
+                        Grid.Column="0"
+                        Text="Annuler"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource White}}"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
+                    <Button
+                        Grid.Column="1"
+                        Text="Enregistrer en brouillon"
+                        FontSize="13"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
+                </Grid>
+
+                <ActivityIndicator IsRunning="{Binding IsSaving}" IsVisible="{Binding IsSaving}"
+                                    Color="{StaticResource Primary}" HorizontalOptions="Center"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

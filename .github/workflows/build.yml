@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - 'dev/**'
+  pull_request:
+    branches:
+      - main
+      - 'dev/**'
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Android (Debug)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install .NET MAUI workload
+        run: dotnet workload install maui-android
+
+      - name: Restore dependencies
+        run: dotnet restore "Invoice Shelf/Invoice Shelf.csproj"
+
+      - name: Build (Debug)
+        run: >
+          dotnet build "Invoice Shelf/Invoice Shelf.csproj"
+          --configuration Debug
+          --framework net10.0-android
+          --no-restore
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-${{ github.sha }}
+          path: Invoice Shelf/bin/Debug/net10.0-android/*.apk
+          retention-days: 7
+          if-no-files-found: warn

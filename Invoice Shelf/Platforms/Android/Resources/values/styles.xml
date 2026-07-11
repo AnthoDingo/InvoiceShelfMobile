@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<resources>
+    <!--
+        Surcharge du thème de splash généré par .NET MAUI (Maui.SplashTheme) pour rendre le
+        splash natif adaptatif au thème système (clair/sombre).
+
+        @color/splash_background (fond plein écran) est aligné sur le thème système :
+          - Resources/values/colors.xml       (thème clair)  -> #F8FAFC (blanc cassé)
+          - Resources/values-night/colors.xml (thème sombre) -> #1F1F1F (gris cassé)
+
+        @color/splash_icon_background (fond du rond derrière le logo InvoiceShelf) reste
+        toujours #1F1F1F (gris cassé), quel que soit le thème système, défini une seule
+        fois dans Resources/values/colors.xml (le logo étant clair, il lui faut un fond
+        sombre constant pour rester lisible). Il s'applique à drawable/splash_icon_foreground
+        (logo seul, sans fond, distinct de l'icône de lancement Resources/AppIcon qui garde
+        son fond violet de marque).
+
+        Android résout automatiquement la bonne valeur selon le thème système au démarrage ;
+        MainActivity applique ce thème (voir MainActivity.cs) à la place de Maui.SplashTheme.
+    -->
+    <style name="Maui.SplashTheme.Custom" parent="Maui.SplashTheme">
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_icon_background</item>
+    </style>
+</resources>

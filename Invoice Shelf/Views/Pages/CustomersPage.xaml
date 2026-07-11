@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
+             xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Pages.CustomersPage"
+             x:DataType="viewmodels:CustomersViewModel"
+             Title="Clients">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter     x:Key="IsNotNullConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Barre de recherche -->
+        <Border
+            Grid.Row="0"
+            Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+            StrokeThickness="1"
+            StrokeShape="RoundRectangle 10"
+            Margin="16,12"
+            BackgroundColor="{AppThemeBinding Light={StaticResource Gray50}, Dark={StaticResource Gray900}}"
+            Padding="12,0">
+            <SearchBar
+                Text="{Binding SearchText}"
+                Placeholder="Rechercher un client…"
+                BackgroundColor="Transparent"/>
+        </Border>
+
+        <!-- Liste + pull-to-refresh -->
+        <RefreshView
+            Grid.Row="1"
+            IsRefreshing="{Binding IsRefreshing}"
+            Command="{Binding RefreshCommand}">
+            <Grid>
+
+                <!-- Liste des clients -->
+                <CollectionView
+                    ItemsSource="{Binding FilteredCustomers}"
+                    SelectionMode="None"
+                    IsVisible="{Binding IsEmpty, Converter={StaticResource InverseBoolConverter}}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:Customer">
+                            <Grid Padding="16,14" ColumnDefinitions="Auto,*,Auto">
+
+                                <!-- Avatar -->
+                                <Border
+                                    Grid.Column="0"
+                                    WidthRequest="46" HeightRequest="46"
+                                    StrokeShape="RoundRectangle 23"
+                                    StrokeThickness="0"
+                                    BackgroundColor="{StaticResource Secondary}"
+                                    VerticalOptions="Center">
+                                    <Label
+                                        Text="{Binding Initials}"
+                                        TextColor="{StaticResource Primary}"
+                                        FontAttributes="Bold" FontSize="16"
+                                        HorizontalOptions="Center" VerticalOptions="Center"/>
+                                </Border>
+
+                                <!-- Nom + email -->
+                                <VerticalStackLayout Grid.Column="1" Margin="14,0,0,0" Spacing="3" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" FontSize="15" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+                                    <Label Text="{Binding Email}" FontSize="13"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                                           LineBreakMode="TailTruncation"
+                                           IsVisible="{Binding Email, Converter={StaticResource IsNotNullConverter}}"/>
+                                    <Label Text="{Binding CompanyName}" FontSize="12"
+                                           TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                                           IsVisible="{Binding CompanyName, Converter={StaticResource IsNotNullConverter}}"/>
+                                </VerticalStackLayout>
+
+                                <!-- Solde dû -->
+                                <Label
+                                    Grid.Column="2"
+                                    Text="{Binding FormattedDueAmount}"
+                                    FontSize="14" FontAttributes="Bold"
+                                    TextColor="{StaticResource StatusOverdue}"
+                                    VerticalOptions="Center"
+                                    IsVisible="{Binding HasDueAmount}"/>
+
+                                <!-- Séparateur -->
+                                <BoxView
+                                    Grid.ColumnSpan="3" VerticalOptions="End" HeightRequest="1"
+                                    Margin="-16,8,-16,-14"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
+
+                                <!-- Tap -->
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:CustomersViewModel}}, Path=OpenCustomerCommand}"
+                                        CommandParameter="{Binding .}"/>
+                                </Grid.GestureRecognizers>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <!-- État vide -->
+                <VerticalStackLayout
+                    VerticalOptions="Center" HorizontalOptions="Center"
+                    Padding="40,0" Spacing="12"
+                    IsVisible="{Binding IsEmpty}">
+                    <Image Aspect="AspectFit" HeightRequest="200" Source="empty_customers_icon.png"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="20" FontAttributes="Bold" Text="Aucun client"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="14"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
+                           Text="Vos clients apparaîtront ici."/>
+                </VerticalStackLayout>
+
+            </Grid>
+        </RefreshView>
+
+    </Grid>
+</ContentPage>

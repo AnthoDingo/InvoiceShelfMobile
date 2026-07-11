@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+jobs:
+  release:
+    name: Build & Release Android (Release)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Extraire la version depuis le tag (ex: v1.2.3 → 1.2.3) ──────────
+      - name: Extract version from tag
+        id: version
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "tag=${TAG}"         >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          # ApplicationVersion = build number = nombre de commits
+          BUILD=$(git rev-list --count HEAD)
+          echo "build=${BUILD}" >> "$GITHUB_OUTPUT"
+
+      # ── .NET & MAUI ───────────────────────────────────────────────────────
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install .NET MAUI workload
+        run: dotnet workload install maui-android
+
+      - name: Restore dependencies
+        run: dotnet restore "Invoice Shelf/Invoice Shelf.csproj"
+
+      # ── Keystore (stocké dans les secrets GitHub) ─────────────────────────
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "${{ runner.temp }}/invoiceshelf.keystore"
+
+      # ── Build Release & Sign ──────────────────────────────────────────────
+      - name: Build & Sign (Release)
+        run: >
+          dotnet publish "Invoice Shelf/Invoice Shelf.csproj"
+          --configuration Release
+          --framework net10.0-android
+          --no-restore
+          -p:AndroidSigningKeyStore="${{ runner.temp }}/invoiceshelf.keystore"
+          -p:AndroidSigningKeyAlias="${{ secrets.KEY_ALIAS }}"
+          -p:AndroidSigningKeyPass="${{ secrets.KEY_PASSWORD }}"
+          -p:AndroidSigningStorePass="${{ secrets.KEYSTORE_PASSWORD }}"
+          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
+          -p:ApplicationVersion="${{ steps.version.outputs.build }}"
+
+      # ── Trouver l'APK/AAB signé ───────────────────────────────────────────
+      - name: Locate signed artifacts
+        id: artifacts
+        run: |
+          APK=$(find "Invoice Shelf/bin/Release/net10.0-android" -name "*Signed*.apk" | head -1)
+          AAB=$(find "Invoice Shelf/bin/Release/net10.0-android" -name "*.aab"        | head -1)
+          echo "apk=${APK}" >> "$GITHUB_OUTPUT"
+          echo "aab=${AAB}" >> "$GITHUB_OUTPUT"
+          echo "APK : ${APK}"
+          echo "AAB : ${AAB}"
+
+      # ── Créer la GitHub Release ───────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: "Invoice Shelf Mobile ${{ steps.version.outputs.tag }}"
+          body: |
+            ## Invoice Shelf Mobile ${{ steps.version.outputs.tag }}
+
+            ### Installation
+            Téléchargez le fichier `.apk` ci-dessous et installez-le sur votre appareil Android.
+
+            > **Note :** L'installation depuis une source inconnue doit être autorisée dans les paramètres de votre appareil.
+
+            ### Changelog
+            Voir les [commits](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.tag }}) pour le détail des changements.
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
+          files: |
+            ${{ steps.artifacts.outputs.apk }}
+            ${{ steps.artifacts.outputs.aab }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

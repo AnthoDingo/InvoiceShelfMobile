@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Pages.MorePage"
+             x:DataType="viewmodels:MoreViewModel"
+             Title="Plus">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0">
+
+            <!-- Profile card -->
+            <Border
+                Margin="16,20,16,0"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 14"
+                BackgroundColor="{StaticResource Primary}"
+                Padding="20">
+                <Grid ColumnDefinitions="Auto,*" IsVisible="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+
+                    <!-- Avatar -->
+                    <Border
+                        Grid.Column="0"
+                        WidthRequest="56"
+                        HeightRequest="56"
+                        StrokeShape="RoundRectangle 28"
+                        StrokeThickness="0"
+                        BackgroundColor="White"
+                        Opacity="0.2"
+                        VerticalOptions="Center"/>
+                    <Label
+                        Grid.Column="0"
+                        Text="{Binding Profile.Initials}"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        FontSize="20"
+                        HorizontalTextAlignment="Center"
+                        HorizontalOptions="Center"
+                        VerticalOptions="Center"
+                        WidthRequest="56"/>
+
+                    <!-- User info -->
+                    <VerticalStackLayout Grid.Column="1" Margin="16,0,0,0" Spacing="4" VerticalOptions="Center">
+                        <Label
+                            Text="{Binding Profile.Name}"
+                            TextColor="White"
+                            FontSize="18"
+                            FontAttributes="Bold"/>
+                        <Label
+                            Text="{Binding Profile.Email}"
+                            TextColor="White"
+                            Opacity="0.8"
+                            FontSize="13"/>
+                        <Label
+                            Text="{Binding Profile.Role}"
+                            TextColor="White"
+                            Opacity="0.7"
+                            FontSize="12"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Server info -->
+            <Border
+                Margin="16,12,16,0"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                StrokeShape="RoundRectangle 14"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                Padding="16">
+                <VerticalStackLayout Spacing="4">
+                    <Label
+                        Text="SERVEUR"
+                        FontSize="11"
+                        FontAttributes="Bold"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                        CharacterSpacing="1"/>
+                    <Label
+                        Text="{Binding ServerUrl}"
+                        FontSize="14"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource Gray200}}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Sécurité -->
+            <Label
+                Text="SÉCURITÉ"
+                Margin="20,24,0,8"
+                FontSize="11"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                CharacterSpacing="1"/>
+
+            <Border
+                Margin="16,0"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                StrokeShape="RoundRectangle 14"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                Padding="16,12">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Verrouillage biométrique" FontSize="15"/>
+                        <Label
+                            Text="Non disponible sur cet appareil"
+                            FontSize="12"
+                            TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                            IsVisible="{Binding IsBiometricAvailable, Converter={StaticResource InverseBooleanConverter}}"/>
+                    </VerticalStackLayout>
+                    <Switch
+                        Grid.Column="1"
+                        VerticalOptions="Center"
+                        IsToggled="{Binding IsBiometricLockEnabled, Mode=TwoWay}"
+                        IsEnabled="{Binding IsBiometricAvailable}"/>
+                </Grid>
+            </Border>
+
+            <!-- Cache -->
+            <Label
+                Text="CACHE"
+                Margin="20,24,0,8"
+                FontSize="11"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                CharacterSpacing="1"/>
+
+            <Border
+                Margin="16,0"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                StrokeShape="RoundRectangle 14"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                Padding="16,14">
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Grid.Column="0" Spacing="2" VerticalOptions="Center">
+                        <Label Text="Vider le cache" FontSize="15"/>
+                        <Label
+                            Text="{Binding CacheSizeDisplay, StringFormat='Données locales : {0}'}"
+                            FontSize="12"
+                            TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
+                    </VerticalStackLayout>
+                    <ActivityIndicator
+                        Grid.Column="1"
+                        IsRunning="{Binding IsClearingCache}"
+                        IsVisible="{Binding IsClearingCache}"
+                        VerticalOptions="Center"/>
+                    <Label
+                        Grid.Column="1"
+                        Text="›"
+                        FontSize="20"
+                        TextColor="{StaticResource Gray400}"
+                        VerticalOptions="Center"
+                        IsVisible="{Binding IsClearingCache, Converter={StaticResource InverseBooleanConverter}}"/>
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ClearCacheCommand}"/>
+                    </Grid.GestureRecognizers>
+                </Grid>
+            </Border>
+
+            <!-- Actions section -->
+            <Label
+                Text="ACTIONS"
+                Margin="20,24,0,8"
+                FontSize="11"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
+                CharacterSpacing="1"/>
+
+            <Border
+                Margin="16,0"
+                StrokeThickness="1"
+                Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"
+                StrokeShape="RoundRectangle 14"
+                BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
+                Padding="0">
+                <VerticalStackLayout>
+
+                    <!-- Change server -->
+                    <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Changer de serveur" FontSize="15"/>
+                        <Label Grid.Column="1" Text="›" FontSize="20" TextColor="{StaticResource Gray400}" VerticalOptions="Center"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ChangeServerCommand}"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+                    <BoxView HeightRequest="1" Margin="16,0" BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"/>
+
+                    <!-- Logout -->
+                    <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Déconnexion" FontSize="15" TextColor="{StaticResource StatusOverdue}"/>
+                        <Label Grid.Column="1" Text="›" FontSize="20" TextColor="{StaticResource Gray400}" VerticalOptions="Center"/>
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding LogoutCommand}"/>
+                        </Grid.GestureRecognizers>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- App version -->
+            <Label
+                Text="Invoice Shelf Mobile · v1.3"
+                Margin="0,24,0,40"
+                FontSize="12"
+                TextColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                HorizontalTextAlignment="Center"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Invoices"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Invoices.RecordPaymentPage"
+             x:DataType="viewmodels:RecordPaymentViewModel"
+             Title="Enregistrer un paiement">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter     x:Key="IsNotNullConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+
+        <!-- Chargement -->
+        <VerticalStackLayout
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Spacing="14"
+            IsVisible="{Binding IsLoading}">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
+            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+        </VerticalStackLayout>
+
+        <!-- Formulaire -->
+        <ScrollView IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <VerticalStackLayout Spacing="16" Padding="16,16,16,32">
+
+                <!-- Contexte : facture concernée -->
+                <Border
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{StaticResource Secondary}"
+                    Padding="16">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="{Binding Invoice.InvoiceNumber}" FontSize="16" FontAttributes="Bold"
+                               TextColor="{StaticResource PrimaryDarkText}"/>
+                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="4">
+                            <Label Grid.Column="0" Text="Solde dû :" FontSize="13" TextColor="{StaticResource PrimaryDarkText}"/>
+                            <Label Grid.Column="1" Text="{Binding Invoice.FormattedDueAmount}" FontSize="13" FontAttributes="Bold"
+                                   TextColor="{StaticResource PrimaryDarkText}"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Erreur -->
+                <Label
+                    Text="{Binding ErrorMessage}"
+                    TextColor="{StaticResource StatusOverdue}"
+                    FontSize="13"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"/>
+
+                <!-- Montant -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Montant" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Entry
+                        Text="{Binding Amount}"
+                        Placeholder="0.00"
+                        Keyboard="Numeric"/>
+                </VerticalStackLayout>
+
+                <!-- Date de paiement -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Date du paiement" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <DatePicker Date="{Binding PaymentDate}"/>
+                </VerticalStackLayout>
+
+                <!-- Numéro de paiement -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Numéro de paiement" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Entry Text="{Binding PaymentNumber}" Placeholder="ex. PAY-000012"/>
+                </VerticalStackLayout>
+
+                <!-- Mode de paiement -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Mode de paiement" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding PaymentMethods}"
+                        SelectedItem="{Binding SelectedPaymentMethod}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner (optionnel)"/>
+                </VerticalStackLayout>
+
+                <!-- Notes -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Notes" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Editor Text="{Binding Notes}" Placeholder="Optionnel" HeightRequest="90" AutoSize="TextChanges"/>
+                </VerticalStackLayout>
+
+                <!-- Actions -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                    <Button
+                        Grid.Column="0"
+                        Text="Annuler"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource White}}"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
+                    <Button
+                        Grid.Column="1"
+                        Text="Enregistrer"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
+                </Grid>
+
+                <ActivityIndicator IsRunning="{Binding IsSaving}" IsVisible="{Binding IsSaving}"
+                                    Color="{StaticResource Primary}" HorizontalOptions="Center"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

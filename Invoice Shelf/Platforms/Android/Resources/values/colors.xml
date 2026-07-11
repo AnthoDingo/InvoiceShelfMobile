@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#5851D8</color>
+    <color name="colorPrimaryDark">#3F3AAA</color>
+    <color name="colorAccent">#5851D8</color>
+
+    <!-- Fond du splash natif en thème clair : blanc cassé (identique à Gray50 dans
+         Resources/Styles/Colors.xaml). Aligné sur le thème système : voir
+         values-night/colors.xml pour le thème sombre (gris cassé). -->
+    <color name="splash_background">#e3e4e6</color>
+
+    <!-- Fond du rond du logo InvoiceShelf sur le splash natif : toujours gris cassé,
+         quel que soit le thème système (logo clair -> besoin d'un fond sombre constant
+         pour rester lisible). Pas de surcharge dans values-night/colors.xml. -->
+    <color name="splash_icon_background">#1F1F1F</color>
+</resources>
