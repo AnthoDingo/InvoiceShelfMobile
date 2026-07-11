@@ -8,11 +8,16 @@ using InvoiceShelf.ViewModels.Invoices;
 namespace InvoiceShelf.ViewModels.Estimates;
 
 /// <summary>
-/// Formulaire de création d'un nouveau devis (brouillon).
-/// Ouvert depuis EstimatesPage via le bouton "+".
+/// Formulaire de création ou de modification d'un devis (toujours en
+/// brouillon).
+/// Création : ouvert depuis EstimatesPage via le bouton "+".
+/// Édition : ouvert depuis EstimateDetailPage via le bouton "Modifier"
+/// (visible uniquement sur un devis en brouillon), avec le paramètre de
+/// requête "estimateId".
 /// Réutilise InvoiceLineItemViewModel et CustomFieldInputViewModel (génériques,
 /// partagés avec le formulaire de création de facture).
 /// </summary>
+[QueryProperty(nameof(EstimateIdParam), "estimateId")]
 public partial class CreateEstimateViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
@@ -20,6 +25,8 @@ public partial class CreateEstimateViewModel : ObservableObject
 
     // Utilisé en repli si le serveur n'expose aucun template (ne devrait pas arriver).
     private const string FallbackTemplateName = "estimate1";
+
+    private int? _editingEstimateId;
 
     public CreateEstimateViewModel(ApiService apiService, ICacheService cacheService)
     {
@@ -29,6 +36,31 @@ public partial class CreateEstimateViewModel : ObservableObject
         AddItem();
         Task.Run(LoadAsync);
     }
+
+    /// <summary>
+    /// Présent uniquement en mode édition (voir EstimateDetailViewModel.EditEstimate).
+    /// Positionné par Shell avant que LoadAsync (déclenché dans le constructeur)
+    /// n'ait eu le temps d'atteindre son dernier await, ce qui garantit que
+    /// PopulateFromExisting s'exécute avec la liste des clients/templates déjà
+    /// chargée.
+    /// </summary>
+    public string EstimateIdParam
+    {
+        set
+        {
+            if (int.TryParse(value, out int id) && id > 0)
+            {
+                _editingEstimateId = id;
+                OnPropertyChanged(nameof(IsEditMode));
+                OnPropertyChanged(nameof(Title));
+                OnPropertyChanged(nameof(SaveButtonText));
+            }
+        }
+    }
+
+    public bool IsEditMode => _editingEstimateId.HasValue;
+    public string Title => IsEditMode ? "Modifier le devis" : "Nouveau devis";
+    public string SaveButtonText => IsEditMode ? "Enregistrer les modifications" : "Enregistrer en brouillon";
 
     [ObservableProperty]
     private List<Customer> _customers = [];
@@ -125,6 +157,9 @@ public partial class CreateEstimateViewModel : ObservableObject
             // sinon le premier template disponible.
             SelectedTemplate = Templates.FirstOrDefault(t => t.Name == FallbackTemplateName)
                 ?? Templates.FirstOrDefault();
+
+            if (_editingEstimateId is int editingId)
+                await PopulateFromExisting(editingId);
         }
         catch (Exception ex)
         {
@@ -133,6 +168,65 @@ public partial class CreateEstimateViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Mode édition : pré-remplit le formulaire avec le devis existant. Appelée
+    /// après le chargement des clients/templates/champs personnalisés (voir
+    /// LoadAsync) afin de pouvoir sélectionner les bonnes entrées de ces listes.
+    /// </summary>
+    private async Task PopulateFromExisting(int id)
+    {
+        Estimate? estimate = await _apiService.GetEstimate(id);
+        if (estimate is null)
+        {
+            ErrorMessage = "Impossible de charger le devis à modifier.";
+            return;
+        }
+
+        SelectedCustomer = Customers.FirstOrDefault(c => c.Id == estimate.CustomerId);
+
+        if (DateTime.TryParse(estimate.EstimateDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedEstimateDate))
+            EstimateDate = parsedEstimateDate;
+
+        if (DateTime.TryParse(estimate.ExpiryDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedExpiryDate))
+            ExpiryDate = parsedExpiryDate;
+
+        EstimateNumber = estimate.EstimateNumber ?? EstimateNumber;
+        Notes = estimate.Notes;
+
+        SelectedTemplate = Templates.FirstOrDefault(t => t.Name == estimate.TemplateName) ?? SelectedTemplate;
+
+        Items.Clear();
+        if (estimate.Items is { Count: > 0 } existingItems)
+        {
+            foreach (Item existingItem in existingItems)
+            {
+                InvoiceLineItemViewModel line = new InvoiceLineItemViewModel
+                {
+                    Name = existingItem.Name,
+                    Description = existingItem.Description,
+                    Quantity = existingItem.Quantity.ToString("0.##", CultureInfo.InvariantCulture),
+                    UnitPrice = (existingItem.Price / 100m).ToString("0.##", CultureInfo.InvariantCulture)
+                };
+                line.PropertyChanged += (_, _) => RecalculateTotals();
+                Items.Add(line);
+            }
+        }
+        else
+        {
+            AddItem();
+        }
+        RecalculateTotals();
+
+        if (estimate.Fields is { Count: > 0 } existingFields)
+        {
+            foreach (Field existingField in existingFields)
+            {
+                CustomFieldInputViewModel? match = CustomFields.FirstOrDefault(f => f.Definition.Id == existingField.CustomFieldId);
+                match?.ApplyExistingValue(existingField);
+            }
         }
     }
 
@@ -234,21 +328,32 @@ public partial class CreateEstimateViewModel : ObservableObject
             // Ne pas inclure "estimateSend" dans le payload : côté API, son absence
             // fait retomber le statut sur Estimate::STATUS_DRAFT (voir
             // EstimatesRequest::getEstimatePayload). Le devis est donc toujours
-            // créé en brouillon depuis ce formulaire ; l'envoi au client se fait
-            // ensuite séparément (POST /estimates/{id}/send).
-            (Estimate? estimate, string? error) = await _apiService.CreateEstimate(request);
+            // créé/conservé en brouillon depuis ce formulaire ; l'envoi au client se
+            // fait ensuite séparément (POST /estimates/{id}/send).
+            (Estimate? estimate, string? error) = _editingEstimateId is int editingId
+                ? await _apiService.UpdateEstimate(editingId, request)
+                : await _apiService.CreateEstimate(request);
 
             if (estimate is null)
             {
-                ErrorMessage = error ?? "Échec de la création du devis.";
+                ErrorMessage = error ?? (IsEditMode ? "Échec de la mise à jour du devis." : "Échec de la création du devis.");
                 return;
             }
 
             // La liste des devis mise en cache est désormais périmée.
             await _cacheService.RemoveAsync(CacheKeys.Estimates);
 
-            await Shell.Current.GoToAsync("..");
-            await Shell.Current.GoToAsync($"EstimateDetailPage?estimateId={estimate.Id}");
+            if (IsEditMode)
+            {
+                // On revient sur EstimateDetailPage (même instance) : son
+                // OnAppearing/RefreshAsync recharge automatiquement le devis à jour.
+                await Shell.Current.GoToAsync("..");
+            }
+            else
+            {
+                await Shell.Current.GoToAsync("..");
+                await Shell.Current.GoToAsync($"EstimateDetailPage?estimateId={estimate.Id}");
+            }
         }
         catch (Exception ex)
         {

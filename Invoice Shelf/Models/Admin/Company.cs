@@ -62,6 +62,8 @@ public record Field(
     [property: JsonPropertyName("string_answer")]               string?      StringAnswer,
     [property: JsonPropertyName("number_answer")]               decimal?     NumberAnswer,
     [property: JsonPropertyName("date_answer")]                 string?      DateAnswer,
+    [property: JsonPropertyName("time_answer")]                 string?      TimeAnswer,
+    [property: JsonPropertyName("date_time_answer")]             string?      DateTimeAnswer,
     [property: JsonPropertyName("default_answer")]              string?      DefaultAnswer,
     [property: JsonPropertyName("default_formatted_answer")]    string?      DefaultFormattedAnswer,
     [property: JsonPropertyName("custom_field_id")]             int          CustomFieldId,

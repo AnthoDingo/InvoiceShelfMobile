@@ -32,6 +32,7 @@ public partial class InvoiceDetailViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(HasItems))]
     [NotifyPropertyChangedFor(nameof(HasNotes))]
     [NotifyPropertyChangedFor(nameof(CanRecordPayment))]
+    [NotifyPropertyChangedFor(nameof(IsDraft))]
     private Invoice? _invoice;
 
     [ObservableProperty]
@@ -39,6 +40,11 @@ public partial class InvoiceDetailViewModel : ObservableObject
 
     public bool HasItems => Invoice?.Items?.Count > 0;
     public bool HasNotes => !string.IsNullOrWhiteSpace(Invoice?.Notes);
+
+    // Le bouton "Modifier" n'est proposé que sur une facture encore en
+    // brouillon : au-delà (envoyée, réglée...), on considère qu'elle ne doit
+    // plus être modifiée depuis ce formulaire simplifié.
+    public bool IsDraft => Invoice?.Status == "DRAFT";
 
     // On ne propose l'enregistrement d'un paiement que sur une facture Envoyée
     // ou En retard (jamais un brouillon, même si son solde dû est déjà > 0 par
@@ -74,4 +80,11 @@ public partial class InvoiceDetailViewModel : ObservableObject
 
     [RelayCommand]
     private async Task GoBack() => await Shell.Current.GoToAsync("..");
+
+    [RelayCommand]
+    private async Task EditInvoice()
+    {
+        if (Invoice is null) return;
+        await Shell.Current.GoToAsync($"CreateInvoicePage?invoiceId={Invoice.Id}");
+    }
 }

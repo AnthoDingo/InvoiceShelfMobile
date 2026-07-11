@@ -179,6 +179,15 @@
                     </VerticalStackLayout>
                 </Border>
 
+                <!-- Modifier (visible uniquement sur un devis en brouillon) -->
+                <Button
+                    Margin="16,12,16,0"
+                    Text="Modifier"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource White}}"
+                    Command="{Binding EditEstimateCommand}"
+                    IsVisible="{Binding IsDraft}"/>
+
                 <!-- Notes -->
                 <Border
                     Margin="16,12,16,0"
