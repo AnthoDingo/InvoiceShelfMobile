@@ -366,6 +366,38 @@ public class ApiService
         catch { return null; }
     }
 
+    /// <summary>Récupère le prochain numéro de devis auto-généré par le serveur (ex. "EST-000012").</summary>
+    public async Task<string?> GetNextEstimateNumber()
+    {
+        try
+        {
+            ApiResponse<NextNumberResponse> res = await Send<NextNumberResponse>(HttpMethod.Get, ApiUri.NextNumber("estimate"), authenticated: true);
+            return res.IsSuccess ? res.Value?.NextNumber : null;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// Crée un nouveau devis (brouillon). Retourne le devis créé si succès,
+    /// ou (null, message d'erreur) sinon.
+    /// </summary>
+    public async Task<(Estimate? Estimate, string? Error)> CreateEstimate(CreateEstimateRequest request)
+    {
+        ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Post, ApiUri.AllEstimates, request, authenticated: true);
+        return res.IsSuccess ? (res.Value?.Data, null) : (null, res.Error ?? "Échec de la création du devis.");
+    }
+
+    /// <summary>Liste les templates PDF disponibles pour les devis (natifs et personnalisés).</summary>
+    public async Task<List<EstimateTemplate>> GetEstimateTemplates()
+    {
+        try
+        {
+            ApiResponse<EstimateTemplatesResponse> res = await Send<EstimateTemplatesResponse>(HttpMethod.Get, ApiUri.EstimateTemplates, authenticated: true);
+            return res.IsSuccess ? res.Value?.EstimateTemplates ?? [] : [];
+        }
+        catch { return []; }
+    }
+
     // ── Clients ──────────────────────────────────────────────────────────────
 
     public async Task<List<Customer>> GetCustomers()
