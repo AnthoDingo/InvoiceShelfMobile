@@ -318,6 +318,23 @@ public class ApiService
         return (res.Value.Data, null);
     }
 
+    /// <summary>
+    /// Met à jour une facture existante (InvoicesRequest côté API accepte le
+    /// même payload que la création, y compris "items" qui remplace entièrement
+    /// les lignes existantes). Réservé aux factures encore modifiables
+    /// (brouillon ici, mais le serveur autorise plus largement selon le réglage
+    /// "retrospective_edits" — voir Invoice::allow_edit).
+    /// </summary>
+    public async Task<(Invoice? Invoice, string? Error)> UpdateInvoice(int id, CreateInvoiceRequest request)
+    {
+        ApiResponse<InvoiceDetail> res = await Send<InvoiceDetail>(HttpMethod.Put, ApiUri.Invoice(id), request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la mise à jour de la facture (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
+    }
+
     // ── Catalogue d'articles ────────────────────────────────────────────────
 
     /// <summary>Liste les articles du catalogue de la société (pour pré-remplir une ligne de facture).</summary>
@@ -390,6 +407,21 @@ public class ApiService
         ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Post, ApiUri.AllEstimates, request, authenticated: true);
         if (!res.IsSuccess)
             return (null, res.Error ?? $"Échec de la création du devis (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
+    }
+
+    /// <summary>
+    /// Met à jour un devis existant (EstimatesRequest côté API accepte le même
+    /// payload que la création, y compris "items" qui remplace entièrement les
+    /// lignes existantes). Réservé aux devis encore modifiables (brouillon).
+    /// </summary>
+    public async Task<(Estimate? Estimate, string? Error)> UpdateEstimate(int id, CreateEstimateRequest request)
+    {
+        ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Put, ApiUri.Estimate(id), request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la mise à jour du devis (HTTP {res.StatusCode}).");
         if (res.Value?.Data is null)
             return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
         return (res.Value.Data, null);

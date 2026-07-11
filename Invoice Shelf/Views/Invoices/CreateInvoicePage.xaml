@@ -6,7 +6,7 @@
              x:Class="InvoiceShelf.Views.Invoices.CreateInvoicePage"
              x:Name="Page"
              x:DataType="viewmodels:CreateInvoiceViewModel"
-             Title="Nouvelle facture">
+             Title="{Binding Title}">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -232,6 +232,7 @@
                 <Label
                     Text="Cette facture sera enregistrée comme brouillon. Vous pourrez l'envoyer au client ensuite."
                     FontSize="12" FontAttributes="Italic"
+                    IsVisible="{Binding IsEditMode, Converter={StaticResource InverseBoolConverter}}"
                     TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
 
                 <!-- Actions -->
@@ -245,7 +246,7 @@
                         IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
                     <Button
                         Grid.Column="1"
-                        Text="Enregistrer en brouillon"
+                        Text="{Binding SaveButtonText}"
                         FontSize="13"
                         BackgroundColor="{StaticResource Primary}"
                         TextColor="White"

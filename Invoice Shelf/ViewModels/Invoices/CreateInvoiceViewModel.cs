@@ -7,9 +7,14 @@ using InvoiceShelf.Services;
 namespace InvoiceShelf.ViewModels.Invoices;
 
 /// <summary>
-/// Formulaire de création d'une nouvelle facture (brouillon).
-/// Ouvert depuis InvoicesPage via le bouton "+".
+/// Formulaire de création ou de modification d'une facture (toujours en
+/// brouillon).
+/// Création : ouvert depuis InvoicesPage via le bouton "+".
+/// Édition : ouvert depuis InvoiceDetailPage via le bouton "Modifier"
+/// (visible uniquement sur une facture en brouillon), avec le paramètre de
+/// requête "invoiceId".
 /// </summary>
+[QueryProperty(nameof(InvoiceIdParam), "invoiceId")]
 public partial class CreateInvoiceViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
@@ -17,6 +22,8 @@ public partial class CreateInvoiceViewModel : ObservableObject
 
     // Utilisé en repli si le serveur n'expose aucun template (ne devrait pas arriver).
     private const string FallbackTemplateName = "invoice1";
+
+    private int? _editingInvoiceId;
 
     public CreateInvoiceViewModel(ApiService apiService, ICacheService cacheService)
     {
@@ -26,6 +33,31 @@ public partial class CreateInvoiceViewModel : ObservableObject
         AddItem();
         Task.Run(LoadAsync);
     }
+
+    /// <summary>
+    /// Présent uniquement en mode édition (voir InvoiceDetailViewModel.EditInvoice).
+    /// Positionné par Shell avant que LoadAsync (déclenché dans le constructeur)
+    /// n'ait eu le temps d'atteindre son dernier await, ce qui garantit que
+    /// PopulateFromExisting s'exécute avec la liste des clients/templates déjà
+    /// chargée.
+    /// </summary>
+    public string InvoiceIdParam
+    {
+        set
+        {
+            if (int.TryParse(value, out int id) && id > 0)
+            {
+                _editingInvoiceId = id;
+                OnPropertyChanged(nameof(IsEditMode));
+                OnPropertyChanged(nameof(Title));
+                OnPropertyChanged(nameof(SaveButtonText));
+            }
+        }
+    }
+
+    public bool IsEditMode => _editingInvoiceId.HasValue;
+    public string Title => IsEditMode ? "Modifier la facture" : "Nouvelle facture";
+    public string SaveButtonText => IsEditMode ? "Enregistrer les modifications" : "Enregistrer en brouillon";
 
     [ObservableProperty]
     private List<Customer> _customers = [];
@@ -122,6 +154,9 @@ public partial class CreateInvoiceViewModel : ObservableObject
             // sinon le premier template disponible.
             SelectedTemplate = Templates.FirstOrDefault(t => t.Name == FallbackTemplateName)
                 ?? Templates.FirstOrDefault();
+
+            if (_editingInvoiceId is int editingId)
+                await PopulateFromExisting(editingId);
         }
         catch (Exception ex)
         {
@@ -130,6 +165,66 @@ public partial class CreateInvoiceViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Mode édition : pré-remplit le formulaire avec la facture existante.
+    /// Appelée après le chargement des clients/templates/champs personnalisés
+    /// (voir LoadAsync) afin de pouvoir sélectionner les bonnes entrées de ces
+    /// listes.
+    /// </summary>
+    private async Task PopulateFromExisting(int id)
+    {
+        Invoice? invoice = await _apiService.GetInvoice(id);
+        if (invoice is null)
+        {
+            ErrorMessage = "Impossible de charger la facture à modifier.";
+            return;
+        }
+
+        SelectedCustomer = Customers.FirstOrDefault(c => c.Id == invoice.CustomerId);
+
+        if (DateTime.TryParse(invoice.InvoiceDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedInvoiceDate))
+            InvoiceDate = parsedInvoiceDate;
+
+        if (DateTime.TryParse(invoice.DueDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsedDueDate))
+            DueDate = parsedDueDate;
+
+        InvoiceNumber = invoice.InvoiceNumber ?? InvoiceNumber;
+        Notes = invoice.Notes;
+
+        SelectedTemplate = Templates.FirstOrDefault(t => t.Name == invoice.TemplateName) ?? SelectedTemplate;
+
+        Items.Clear();
+        if (invoice.Items is { Count: > 0 } existingItems)
+        {
+            foreach (Item existingItem in existingItems)
+            {
+                InvoiceLineItemViewModel line = new InvoiceLineItemViewModel
+                {
+                    Name = existingItem.Name,
+                    Description = existingItem.Description,
+                    Quantity = existingItem.Quantity.ToString("0.##", CultureInfo.InvariantCulture),
+                    UnitPrice = (existingItem.Price / 100m).ToString("0.##", CultureInfo.InvariantCulture)
+                };
+                line.PropertyChanged += (_, _) => RecalculateTotals();
+                Items.Add(line);
+            }
+        }
+        else
+        {
+            AddItem();
+        }
+        RecalculateTotals();
+
+        if (invoice.Fields is { Count: > 0 } existingFields)
+        {
+            foreach (Field existingField in existingFields)
+            {
+                CustomFieldInputViewModel? match = CustomFields.FirstOrDefault(f => f.Definition.Id == existingField.CustomFieldId);
+                match?.ApplyExistingValue(existingField);
+            }
         }
     }
 
@@ -231,21 +326,33 @@ public partial class CreateInvoiceViewModel : ObservableObject
             // Ne pas inclure "invoiceSend" dans le payload : côté API, son absence
             // fait retomber le statut sur Invoice::STATUS_DRAFT (voir
             // InvoicesRequest::getInvoicePayload). La facture est donc toujours
-            // créée en brouillon depuis ce formulaire ; l'envoi au client se fait
-            // ensuite séparément (POST /invoices/{id}/send).
-            (Invoice? invoice, string? error) = await _apiService.CreateInvoice(request);
+            // créée/conservée en brouillon depuis ce formulaire ; l'envoi au
+            // client se fait ensuite séparément (POST /invoices/{id}/send).
+            (Invoice? invoice, string? error) = _editingInvoiceId is int editingId
+                ? await _apiService.UpdateInvoice(editingId, request)
+                : await _apiService.CreateInvoice(request);
 
             if (invoice is null)
             {
-                ErrorMessage = error ?? "Échec de la création de la facture.";
+                ErrorMessage = error ?? (IsEditMode ? "Échec de la mise à jour de la facture." : "Échec de la création de la facture.");
                 return;
             }
 
             // La liste des factures mise en cache est désormais périmée.
             await _cacheService.RemoveAsync(CacheKeys.Invoices);
 
-            await Shell.Current.GoToAsync("..");
-            await Shell.Current.GoToAsync($"InvoiceDetailPage?invoiceId={invoice.Id}");
+            if (IsEditMode)
+            {
+                // On revient sur InvoiceDetailPage (même instance) : son
+                // OnAppearing/RefreshAsync (déjà en place pour le retour depuis
+                // RecordPaymentPage) recharge automatiquement la facture à jour.
+                await Shell.Current.GoToAsync("..");
+            }
+            else
+            {
+                await Shell.Current.GoToAsync("..");
+                await Shell.Current.GoToAsync($"InvoiceDetailPage?invoiceId={invoice.Id}");
+            }
         }
         catch (Exception ex)
         {
