@@ -40,8 +40,15 @@ public partial class InvoiceDetailViewModel : ObservableObject
     public bool HasItems => Invoice?.Items?.Count > 0;
     public bool HasNotes => !string.IsNullOrWhiteSpace(Invoice?.Notes);
 
-    // On ne propose l'enregistrement d'un paiement que s'il reste un solde dû.
-    public bool CanRecordPayment => Invoice is not null && Invoice.DueAmount > 0;
+    // On ne propose l'enregistrement d'un paiement que sur une facture Envoyée
+    // ou En retard (jamais un brouillon, même si son solde dû est déjà > 0 par
+    // défaut côté serveur). IsOverdue est recalculé côté client (voir Invoice.cs)
+    // car le statut serveur peut rester "SENT" tant que le job de recalcul du
+    // retard n'est pas repassé.
+    public bool CanRecordPayment =>
+        Invoice is not null
+        && Invoice.DueAmount > 0
+        && (Invoice.Status == "SENT" || Invoice.Status == "OVERDUE" || Invoice.IsOverdue);
 
     private async Task LoadInvoice(int id)
     {
