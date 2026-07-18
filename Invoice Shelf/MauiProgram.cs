@@ -9,6 +9,8 @@ using InvoiceShelf.ViewModels.Auth;
 using InvoiceShelf.ViewModels.Invoices;
 using InvoiceShelf.ViewModels.Estimates;
 using InvoiceShelf.Views.Estimates;
+using InvoiceShelf.ViewModels.Expenses;
+using InvoiceShelf.Views.Expenses;
 using MauiIcons.FontAwesome;
 using MauiIcons.Material;
 
@@ -101,6 +103,8 @@ namespace InvoiceShelf
             services.AddTransient<CreateEstimateViewModel>();
             services.AddTransient<CustomerDetailPage>();
             services.AddTransient<CustomerDetailViewModel>();
+            services.AddTransient<CreateExpensePage>();
+            services.AddTransient<CreateExpenseViewModel>();
 
             return builder.Build();
         }

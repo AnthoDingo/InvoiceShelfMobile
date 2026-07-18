@@ -491,4 +491,38 @@ public class ApiService
 
     public async Task<List<Expense>> GetExpenses()
         => await GetAllPages<Expenses, Expense>(ApiUri.AllExpenses);
+
+    /// <summary>Liste les catégories de dépenses configurées sur la société.</summary>
+    public async Task<List<ExpenseCategory>> GetExpenseCategories()
+        => await GetAllPages<ExpenseCategories, ExpenseCategory>(ApiUri.AllExpenseCategories);
+
+    /// <summary>
+    /// Identifiant de la devise de la société (réglage "currency"), requis par
+    /// l'API pour créer une dépense. Retourne null si indisponible.
+    /// </summary>
+    public async Task<int?> GetCompanyCurrencyId()
+    {
+        try
+        {
+            ApiResponse<CompanyCurrencySetting> res = await Send<CompanyCurrencySetting>(HttpMethod.Get, ApiUri.CompanySettings("currency"), authenticated: true);
+            if (!res.IsSuccess || string.IsNullOrWhiteSpace(res.Value?.Currency))
+                return null;
+            return int.TryParse(res.Value.Currency, out int currencyId) ? currencyId : null;
+        }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// Crée une nouvelle dépense. Retourne la dépense créée si succès,
+    /// ou (null, message d'erreur) sinon.
+    /// </summary>
+    public async Task<(Expense? Expense, string? Error)> CreateExpense(CreateExpenseRequest request)
+    {
+        ApiResponse<ExpenseDetail> res = await Send<ExpenseDetail>(HttpMethod.Post, ApiUri.AllExpenses, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la création de la dépense (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
+    }
 }

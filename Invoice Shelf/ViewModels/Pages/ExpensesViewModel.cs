@@ -60,4 +60,8 @@ public partial class ExpensesViewModel : ObservableObject
     /// <summary>Déclenché par le pull-to-refresh : ignore systématiquement le cache.</summary>
     [RelayCommand]
     private async Task Refresh() => await LoadAsync(forceRefresh: true);
+
+    /// <summary>Ouvre le formulaire de création d'une dépense.</summary>
+    [RelayCommand]
+    private async Task NewExpense() => await Shell.Current.GoToAsync("CreateExpensePage");
 }

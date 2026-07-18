@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Expenses"
+             xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             x:Class="InvoiceShelf.Views.Expenses.CreateExpensePage"
+             x:DataType="viewmodels:CreateExpenseViewModel"
+             Title="Nouvelle dépense">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <helpers:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <helpers:IsNotNullConverter     x:Key="IsNotNullConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid>
+
+        <!-- Chargement -->
+        <VerticalStackLayout
+            VerticalOptions="Center"
+            HorizontalOptions="Center"
+            Spacing="14"
+            IsVisible="{Binding IsLoading}">
+            <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
+            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+        </VerticalStackLayout>
+
+        <!-- Formulaire -->
+        <ScrollView IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
+            <VerticalStackLayout Spacing="16" Padding="16,16,16,32">
+
+                <!-- Erreur -->
+                <Label
+                    Text="{Binding ErrorMessage}"
+                    TextColor="{StaticResource StatusOverdue}"
+                    FontSize="13"
+                    IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"/>
+
+                <!-- Catégorie -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Catégorie" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner une catégorie"/>
+                </VerticalStackLayout>
+
+                <!-- Montant -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Montant" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Entry
+                        Text="{Binding Amount}"
+                        Placeholder="0.00"
+                        Keyboard="Numeric"/>
+                </VerticalStackLayout>
+
+                <!-- Date de la dépense -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Date de la dépense" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <DatePicker Date="{Binding ExpenseDate}"/>
+                </VerticalStackLayout>
+
+                <!-- Client (optionnel) -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Client" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding Customers}"
+                        SelectedItem="{Binding SelectedCustomer}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner (optionnel)"/>
+                </VerticalStackLayout>
+
+                <!-- Mode de paiement (optionnel) -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Mode de paiement" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding PaymentMethods}"
+                        SelectedItem="{Binding SelectedPaymentMethod}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner (optionnel)"/>
+                </VerticalStackLayout>
+
+                <!-- Notes -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Notes" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Editor Text="{Binding Notes}" Placeholder="Optionnel" HeightRequest="90" AutoSize="TextChanges"/>
+                </VerticalStackLayout>
+
+                <!-- Actions -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,8,0,0">
+                    <Button
+                        Grid.Column="0"
+                        Text="Annuler"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource White}}"
+                        Command="{Binding CancelCommand}"
+                        IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
+                    <Button
+                        Grid.Column="1"
+                        Text="Enregistrer"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding IsSaving, Converter={StaticResource InverseBoolConverter}}"/>
+                </Grid>
+
+                <ActivityIndicator IsRunning="{Binding IsSaving}" IsVisible="{Binding IsSaving}"
+                                    Color="{StaticResource Primary}" HorizontalOptions="Center"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

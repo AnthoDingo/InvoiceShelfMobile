@@ -56,6 +56,13 @@ namespace InvoiceShelf.Constants
         #region Expenses
         public static string AllExpenses              => "/api/v1/expenses";
         public static string Expense(int id)          => $"/api/v1/expenses/{id}";
+        /// <summary>Liste des catégories de dépenses de la société.</summary>
+        public static string AllExpenseCategories     => "/api/v1/categories";
+        #endregion
+
+        #region Réglages société
+        /// <summary>Lit un sous-ensemble de réglages société (ex. "currency").</summary>
+        public static string CompanySettings(string key) => $"/api/v1/company/settings?settings[]={key}";
         #endregion
     }
 }
