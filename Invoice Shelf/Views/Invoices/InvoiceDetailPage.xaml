@@ -93,6 +93,20 @@
                             </Grid>
                         </Border>
 
+                        <!-- Enregistrer un paiement (facture envoyée ou en retard) :
+                             ouvre RecordPaymentPage avec cette facture pré-remplie. -->
+                        <Button
+                            Text="Enregistrer un paiement"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            BackgroundColor="White"
+                            TextColor="{StaticResource Primary}"
+                            CornerRadius="10"
+                            HeightRequest="44"
+                            Margin="0,6,0,0"
+                            Command="{Binding RecordPaymentCommand}"
+                            IsVisible="{Binding CanRecordPayment}"/>
+
                     </VerticalStackLayout>
                 </Border>
 
