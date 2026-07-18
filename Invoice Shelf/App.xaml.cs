@@ -27,11 +27,19 @@ namespace InvoiceShelf
         {
             if (!_wasSentToBackground) return;
 
+            // La lecture de la préférence est asynchrone (SecureStorage) ; on délègue
+            // vers une Task, OnResume devant rester synchrone.
+            _ = LockIfNeededAsync();
+        }
+
+        private async Task LockIfNeededAsync()
+        {
             // On ne verrouille que si l'option est activée et qu'une session est en cours
             // (sinon on est déjà sur SplashPage/EndpointPage/CredentialPage, où un verrou
             // n'aurait pas de sens).
-            if (_biometricLockService.IsEnabled && Shell.Current is not null)
-                _ = Shell.Current.GoToAsync($"//LockPage");
+            bool lockEnabled = await _biometricLockService.IsEnabledAsync();
+            if (lockEnabled && Shell.Current is not null)
+                await Shell.Current.GoToAsync($"//LockPage");
         }
     }
 }
