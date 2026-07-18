@@ -7,12 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class ExpensesViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public ExpensesViewModel(ApiService apiService, ICacheService cacheService)
+    public ExpensesViewModel(ApiService apiService)
     {
         _apiService   = apiService;
-        _cacheService = cacheService;
     }
 
     internal async void Loaded(object? sender, EventArgs e) => await LoadAsync(forceRefresh: false);
@@ -28,25 +26,15 @@ public partial class ExpensesViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cached = await _cacheService.GetAsync<List<Expense>>(CacheKeys.Expenses);
-            if (cached.IsFresh && cached.Value is not null)
-            {
-                Expenses = SortLatestFirst(cached.Value);
-                return;
-            }
-        }
-
         IsRefreshing = true;
         try
         {
-            var data = await _apiService.GetExpenses();
+            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+            // centralisée par ApiService : forceRefresh contourne le cache frais.
+            List<Expense> data = await _apiService.GetExpenses(forceRefresh);
             // L'API renvoie les dépenses par ordre de création croissant (les plus
             // anciennes d'abord) : on les trie ici pour afficher les plus récentes en tête.
-            var sorted = SortLatestFirst(data);
-            Expenses = sorted;
-            await _cacheService.SetAsync(CacheKeys.Expenses, sorted);
+            Expenses = SortLatestFirst(data);
         }
         catch (Exception ex) { Console.WriteLine($"Erreur chargement dépenses : {ex.Message}"); }
         finally { IsRefreshing = false; }

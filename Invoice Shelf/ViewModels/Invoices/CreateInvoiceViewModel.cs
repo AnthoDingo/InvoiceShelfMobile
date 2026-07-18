@@ -18,17 +18,15 @@ namespace InvoiceShelf.ViewModels.Invoices;
 public partial class CreateInvoiceViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
     // Utilisé en repli si le serveur n'expose aucun template (ne devrait pas arriver).
     private const string FallbackTemplateName = "invoice1";
 
     private int? _editingInvoiceId;
 
-    public CreateInvoiceViewModel(ApiService apiService, ICacheService cacheService)
+    public CreateInvoiceViewModel(ApiService apiService)
     {
         _apiService = apiService;
-        _cacheService = cacheService;
         Items.CollectionChanged += (_, _) => RecalculateTotals();
         AddItem();
         Task.Run(LoadAsync);
@@ -338,8 +336,6 @@ public partial class CreateInvoiceViewModel : ObservableObject
                 return;
             }
 
-            // La liste des factures mise en cache est désormais périmée.
-            await _cacheService.RemoveAsync(CacheKeys.Invoices);
 
             if (IsEditMode)
             {

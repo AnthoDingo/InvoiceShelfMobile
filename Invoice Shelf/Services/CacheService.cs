@@ -192,17 +192,3 @@ public class CacheService : ICacheService
         }
     }
 }
-
-/// <summary>Clés de cache centralisées pour éviter les collisions/typos.</summary>
-public static class CacheKeys
-{
-    public const string Invoices  = "invoices";
-    public const string Estimates = "estimates";
-    public const string Customers = "customers";
-    public const string Payments  = "payments";
-    public const string Expenses  = "expenses";
-    public const string Profile   = "profile";
-
-    /// <summary>Clé de cache pour la fiche détaillée d'un client donné.</summary>
-    public static string CustomerDetail(int customerId) => $"customer_detail_{customerId}";
-}

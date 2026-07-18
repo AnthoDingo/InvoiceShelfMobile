@@ -7,12 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class DashboardViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public DashboardViewModel(ApiService apiService, ICacheService cacheService)
+    public DashboardViewModel(ApiService apiService)
     {
         _apiService   = apiService   ?? throw new ArgumentNullException(nameof(apiService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
     }
 
     // Au chargement de la page : on sert le cache s'il est encore valide (< 7 jours),
@@ -36,41 +34,23 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty] private bool   _isLoading;
 
     /// <summary>
-    /// Charge le profil et les factures. Si <paramref name="forceRefresh"/> est faux et que des
-    /// entrées de cache valides (moins de 7 jours) existent, elles sont utilisées directement sans
-    /// appel réseau. Sinon (cache absent, périmé, ou rafraîchissement forcé), les données sont
-    /// récupérées depuis l'API puis réécrites dans le cache.
-    /// Le cache des factures (<see cref="CacheKeys.Invoices"/>) est partagé avec
-    /// <see cref="InvoicesViewModel"/> : les deux pages restent cohérentes entre elles et
+    /// Charge le profil et les factures. Le cache est géré de façon centralisée
+    /// par ApiService (une entrée par endpoint GET) : le tableau de bord et la
+    /// page Factures partagent donc naturellement les mêmes données locales, et
     /// un rafraîchissement sur l'une profite à l'autre.
     /// </summary>
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cachedInvoices = await _cacheService.GetAsync<List<Invoice>>(CacheKeys.Invoices);
-            if (cachedInvoices.IsFresh && cachedInvoices.Value is not null)
-            {
-                var cachedProfile = await _cacheService.GetAsync<UserProfile>(CacheKeys.Profile);
-                if (cachedProfile.IsFresh && cachedProfile.Value is not null)
-                    GreetingName = cachedProfile.Value.Name?.Split(' ').FirstOrDefault() ?? string.Empty;
-
-                ApplyInvoices(cachedInvoices.Value);
-                return;
-            }
-        }
-
         IsLoading = true;
         try
         {
-            var profile = await _apiService.GetMe();
+            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+            // centralisée par ApiService : forceRefresh contourne le cache frais.
+            UserProfile? profile = await _apiService.GetMe(forceRefresh);
             GreetingName = profile?.Name?.Split(' ').FirstOrDefault() ?? string.Empty;
-            if (profile is not null)
-                await _cacheService.SetAsync(CacheKeys.Profile, profile);
 
-            var invoices = await _apiService.GetInvoices();
+            List<Invoice> invoices = await _apiService.GetInvoices(forceRefresh);
             ApplyInvoices(invoices);
-            await _cacheService.SetAsync(CacheKeys.Invoices, invoices);
         }
         catch (Exception ex)
         {

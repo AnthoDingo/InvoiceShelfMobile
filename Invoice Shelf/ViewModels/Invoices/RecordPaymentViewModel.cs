@@ -13,12 +13,10 @@ namespace InvoiceShelf.ViewModels.Invoices;
 public partial class RecordPaymentViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public RecordPaymentViewModel(ApiService apiService, ICacheService cacheService)
+    public RecordPaymentViewModel(ApiService apiService)
     {
         _apiService = apiService;
-        _cacheService = cacheService;
     }
 
     /// <summary>Vrai si la page a été ouverte avec un identifiant de facture.</summary>
@@ -237,11 +235,8 @@ public partial class RecordPaymentViewModel : ObservableObject
                 return;
             }
 
-            // La facture, ses paiements et la fiche client mise en cache sont désormais
-            // périmés côté local : on les invalide pour forcer un rechargement réseau.
-            await _cacheService.RemoveAsync(CacheKeys.Invoices);
-            await _cacheService.RemoveAsync(CacheKeys.Payments);
-            await _cacheService.RemoveAsync(CacheKeys.CustomerDetail(customerId.Value));
+            // L'invalidation du cache est automatique : toute mutation réussie
+            // (POST/PUT/DELETE) purge le cache GET dans ApiService.
 
             await Shell.Current.GoToAsync("..");
         }

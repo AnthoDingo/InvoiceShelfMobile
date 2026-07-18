@@ -7,12 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class CustomersViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public CustomersViewModel(ApiService apiService, ICacheService cacheService)
+    public CustomersViewModel(ApiService apiService)
     {
         _apiService   = apiService;
-        _cacheService = cacheService;
     }
 
     internal async void Loaded(object? sender, EventArgs e) => await LoadAsync(forceRefresh: false);
@@ -47,22 +45,13 @@ public partial class CustomersViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cached = await _cacheService.GetAsync<List<Customer>>(CacheKeys.Customers);
-            if (cached.IsFresh && cached.Value is not null)
-            {
-                Customers = cached.Value;
-                return;
-            }
-        }
-
         IsRefreshing = true;
         try
         {
-            var data = await _apiService.GetCustomers();
+            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+            // centralisée par ApiService : forceRefresh contourne le cache frais.
+            List<Customer> data = await _apiService.GetCustomers(forceRefresh);
             Customers = data;
-            await _cacheService.SetAsync(CacheKeys.Customers, data);
         }
         catch (Exception ex) { Console.WriteLine($"Erreur chargement clients : {ex.Message}"); }
         finally { IsRefreshing = false; }

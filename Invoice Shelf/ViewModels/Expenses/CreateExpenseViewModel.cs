@@ -12,17 +12,15 @@ namespace InvoiceShelf.ViewModels.Expenses;
 public partial class CreateExpenseViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
     /// <summary>Devise de la société, requise par l'API pour créer une dépense.</summary>
     private int? _companyCurrencyId;
 
     private bool _isLoaded;
 
-    public CreateExpenseViewModel(ApiService apiService, ICacheService cacheService)
+    public CreateExpenseViewModel(ApiService apiService)
     {
         _apiService   = apiService;
-        _cacheService = cacheService;
     }
 
     internal async void Loaded(object? sender, EventArgs e)
@@ -156,9 +154,8 @@ public partial class CreateExpenseViewModel : ObservableObject
                 return;
             }
 
-            // La liste des dépenses en cache est périmée : on l'invalide pour
-            // forcer un rechargement réseau au retour sur l'onglet.
-            await _cacheService.RemoveAsync(CacheKeys.Expenses);
+            // L'invalidation du cache est automatique : toute mutation réussie
+            // (POST/PUT/DELETE) purge le cache GET dans ApiService.
 
             await Shell.Current.GoToAsync("..");
         }

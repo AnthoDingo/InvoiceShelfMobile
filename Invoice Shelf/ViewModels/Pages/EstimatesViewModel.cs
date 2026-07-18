@@ -7,12 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class EstimatesViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public EstimatesViewModel(ApiService apiService, ICacheService cacheService)
+    public EstimatesViewModel(ApiService apiService)
     {
         _apiService   = apiService   ?? throw new ArgumentNullException(nameof(apiService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
     }
 
     // Au chargement de la page : on sert le cache s'il est encore valide (< 7 jours),
@@ -41,22 +39,13 @@ public partial class EstimatesViewModel : ObservableObject
     /// </summary>
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cached = await _cacheService.GetAsync<List<Estimate>>(CacheKeys.Estimates);
-            if (cached.IsFresh && cached.Value is not null)
-            {
-                Estimates = cached.Value;
-                return;
-            }
-        }
-
         IsRefreshing = true;
         try
         {
-            var data = await _apiService.GetEstimates();
+            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+            // centralisée par ApiService : forceRefresh contourne le cache frais.
+            List<Estimate> data = await _apiService.GetEstimates(forceRefresh);
             Estimates = data;
-            await _cacheService.SetAsync(CacheKeys.Estimates, data);
         }
         catch (Exception ex) { Console.WriteLine($"Erreur chargement devis : {ex.Message}"); }
         finally { IsRefreshing = false; }
