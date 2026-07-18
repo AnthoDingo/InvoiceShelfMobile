@@ -21,17 +21,74 @@ public partial class RecordPaymentViewModel : ObservableObject
         _cacheService = cacheService;
     }
 
+    /// <summary>Vrai si la page a été ouverte avec un identifiant de facture.</summary>
+    private bool _invoiceRequested;
+
+    private bool _standaloneLoaded;
+
     public string InvoiceIdParam
     {
         set
         {
             if (int.TryParse(value, out int id) && id > 0)
+            {
+                _invoiceRequested = true;
                 Task.Run(() => LoadAsync(id));
+            }
         }
+    }
+
+    /// <summary>
+    /// Sans facture passée en paramètre (ouverture depuis l'onglet Paiements),
+    /// bascule en mode autonome : choix du client et, éventuellement, d'une
+    /// facture impayée de ce client. Les paramètres de requête Shell étant
+    /// appliqués avant l'événement Loaded, le test est fiable.
+    /// </summary>
+    internal async void Loaded(object? sender, EventArgs e)
+    {
+        if (_invoiceRequested || _standaloneLoaded) return;
+        _standaloneLoaded = true;
+        await LoadStandaloneAsync();
     }
 
     [ObservableProperty]
     private Invoice? _invoice;
+
+    [ObservableProperty]
+    private bool _isStandalone;
+
+    [ObservableProperty]
+    private List<Customer> _customers = [];
+
+    [ObservableProperty]
+    private Customer? _selectedCustomer;
+
+    [ObservableProperty]
+    private List<Invoice> _customerInvoices = [];
+
+    [ObservableProperty]
+    private Invoice? _selectedInvoice;
+
+    /// <summary>Toutes les factures, pour filtrer par client en mode autonome.</summary>
+    private List<Invoice> _allInvoices = [];
+
+    partial void OnSelectedCustomerChanged(Customer? value)
+    {
+        SelectedInvoice = null;
+        CustomerInvoices = value is null
+            ? []
+            : _allInvoices.Where(i => i.CustomerId == value.Id && i.DueAmount > 0).ToList();
+    }
+
+    partial void OnSelectedInvoiceChanged(Invoice? value)
+    {
+        if (value is null) return;
+
+        // Pré-remplit le montant avec le solde dû de la facture choisie.
+        decimal due = value.DueAmount / 100m;
+        if (due > 0)
+            Amount = due.ToString("0.00", CultureInfo.InvariantCulture);
+    }
 
     [ObservableProperty]
     private List<PaymentMethod> _paymentMethods = [];
@@ -97,12 +154,50 @@ public partial class RecordPaymentViewModel : ObservableObject
         }
     }
 
+    private async Task LoadStandaloneAsync()
+    {
+        IsStandalone = true;
+        IsLoading = true;
+        ErrorMessage = null;
+        try
+        {
+            // Clients, factures, modes de paiement et prochain numéro :
+            // indépendants, chargés en parallèle.
+            Task<List<Customer>>      customersTask      = _apiService.GetCustomers();
+            Task<List<Invoice>>       invoicesTask       = _apiService.GetInvoices();
+            Task<List<PaymentMethod>> paymentMethodsTask = _apiService.GetPaymentMethods();
+            Task<string?>             nextNumberTask     = _apiService.GetNextPaymentNumber();
+            await Task.WhenAll(customersTask, invoicesTask, paymentMethodsTask, nextNumberTask);
+
+            Customers      = customersTask.Result;
+            _allInvoices   = invoicesTask.Result;
+            PaymentMethods = paymentMethodsTask.Result;
+            PaymentNumber  = nextNumberTask.Result ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Erreur de chargement : {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
     [RelayCommand]
     private async Task Save()
     {
-        if (Invoice is null || IsSaving) return;
+        if (IsSaving) return;
 
         ErrorMessage = null;
+
+        // En mode autonome, le client vient du sélecteur ; sinon de la facture.
+        int? customerId = Invoice?.CustomerId ?? SelectedCustomer?.Id;
+        if (customerId is null)
+        {
+            ErrorMessage = "Sélectionnez un client.";
+            return;
+        }
 
         // Le séparateur décimal saisi peut être "," ou "." selon la culture du clavier.
         string normalizedAmount = Amount.Trim().Replace(',', '.');
@@ -126,10 +221,10 @@ public partial class RecordPaymentViewModel : ObservableObject
 
             var request = new CreatePaymentRequest(
                 PaymentDate: PaymentDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-                CustomerId: Invoice.CustomerId,
+                CustomerId: customerId.Value,
                 Amount: amountInCents,
                 PaymentNumber: PaymentNumber.Trim(),
-                InvoiceId: Invoice.Id,
+                InvoiceId: Invoice?.Id ?? SelectedInvoice?.Id,
                 PaymentMethodId: SelectedPaymentMethod?.Id,
                 Notes: string.IsNullOrWhiteSpace(Notes) ? null : Notes.Trim()
             );
@@ -146,7 +241,7 @@ public partial class RecordPaymentViewModel : ObservableObject
             // périmés côté local : on les invalide pour forcer un rechargement réseau.
             await _cacheService.RemoveAsync(CacheKeys.Invoices);
             await _cacheService.RemoveAsync(CacheKeys.Payments);
-            await _cacheService.RemoveAsync(CacheKeys.CustomerDetail(Invoice.CustomerId));
+            await _cacheService.RemoveAsync(CacheKeys.CustomerDetail(customerId.Value));
 
             await Shell.Current.GoToAsync("..");
         }

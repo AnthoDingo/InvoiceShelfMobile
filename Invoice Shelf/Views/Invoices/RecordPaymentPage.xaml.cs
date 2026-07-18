@@ -8,5 +8,6 @@ public partial class RecordPaymentPage : ContentPage
     {
         InitializeComponent();
         BindingContext = viewModel;
+        Loaded += viewModel.Loaded;
     }
 }

@@ -52,4 +52,8 @@ public partial class PaymentsViewModel : ObservableObject
     /// <summary>Déclenché par le pull-to-refresh : ignore systématiquement le cache.</summary>
     [RelayCommand]
     private async Task Refresh() => await LoadAsync(forceRefresh: true);
+
+    /// <summary>Ouvre le formulaire d'enregistrement d'un paiement (mode autonome).</summary>
+    [RelayCommand]
+    private async Task RecordPayment() => await Shell.Current.GoToAsync("RecordPaymentPage");
 }

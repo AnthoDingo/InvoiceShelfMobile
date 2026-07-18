@@ -30,12 +30,13 @@
         <ScrollView IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <VerticalStackLayout Spacing="16" Padding="16,16,16,32">
 
-                <!-- Contexte : facture concernée -->
+                <!-- Contexte : facture concernée (absent en mode autonome) -->
                 <Border
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 14"
                     BackgroundColor="{StaticResource Secondary}"
-                    Padding="16">
+                    Padding="16"
+                    IsVisible="{Binding Invoice, Converter={StaticResource IsNotNullConverter}}">
                     <VerticalStackLayout Spacing="4">
                         <Label Text="{Binding Invoice.InvoiceNumber}" FontSize="16" FontAttributes="Bold"
                                TextColor="{StaticResource PrimaryDarkText}"/>
@@ -53,6 +54,28 @@
                     TextColor="{StaticResource StatusOverdue}"
                     FontSize="13"
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"/>
+
+                <!-- Mode autonome : choix du client -->
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding IsStandalone}">
+                    <Label Text="Client" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding Customers}"
+                        SelectedItem="{Binding SelectedCustomer}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner un client"/>
+                </VerticalStackLayout>
+
+                <!-- Mode autonome : facture impayée du client (optionnel) -->
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding IsStandalone}">
+                    <Label Text="Facture" FontSize="12" FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
+                    <Picker
+                        ItemsSource="{Binding CustomerInvoices}"
+                        SelectedItem="{Binding SelectedInvoice}"
+                        ItemDisplayBinding="{Binding InvoiceNumber}"
+                        Title="Aucune (optionnel)"/>
+                </VerticalStackLayout>
 
                 <!-- Montant -->
                 <VerticalStackLayout Spacing="6">
