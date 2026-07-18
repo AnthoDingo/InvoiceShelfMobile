@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '*.*.*'
+  workflow_dispatch:
 
 jobs:
   release:
@@ -15,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # ── Extraire la version depuis le tag (ex: v1.2.3 → 1.2.3) ──────────
       - name: Extract version from tag
