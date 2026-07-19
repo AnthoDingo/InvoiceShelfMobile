@@ -33,9 +33,12 @@ public partial class PaymentsViewModel : ObservableObject
             var cached = await _cacheService.GetAsync<List<Payment>>(CacheKeys.Payments);
             if (cached.IsFresh && cached.Value is not null)
             {
+                Console.WriteLine($"[Payments] Cache utilisé (écrit le {cached.CachedAt}, {cached.Value.Count} paiement(s)).");
                 Payments = cached.Value;
                 return;
             }
+
+            Console.WriteLine($"[Payments] Cache absent/périmé (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) : appel réseau.");
         }
 
         IsRefreshing = true;

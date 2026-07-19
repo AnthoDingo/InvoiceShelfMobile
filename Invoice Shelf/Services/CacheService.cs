@@ -88,9 +88,12 @@ public class CacheService : ICacheService
             bool expired = DateTimeOffset.UtcNow - envelope.CachedAt > effectiveTtl;
             return new CacheResult<T>(true, expired, envelope.Data, envelope.CachedAt);
         }
-        catch
+        catch (Exception ex)
         {
             // Fichier corrompu / JSON invalide : on considère qu'il n'y a pas de cache exploitable.
+            // On logue quand même l'erreur : un échec silencieux répété ici force un
+            // appel réseau à chaque chargement sans que ça se voie ailleurs.
+            Console.WriteLine($"[Cache] Lecture échouée pour la clé \"{key}\" ({path}) : {ex.GetType().Name} - {ex.Message}");
             return new CacheResult<T>(false, true, default, null);
         }
         finally
@@ -103,17 +106,25 @@ public class CacheService : ICacheService
     {
         string path = PathFor(key);
         var envelope = new CacheEnvelope<T>(DateTimeOffset.UtcNow, value);
-        string json = JsonSerializer.Serialize(envelope, JsonOptions);
 
         SemaphoreSlim sem = LockFor(key);
         await sem.WaitAsync();
         try
         {
+            string json = JsonSerializer.Serialize(envelope, JsonOptions);
+
             // Écriture sur fichier temporaire puis remplacement atomique pour éviter
             // un fichier tronqué si l'appli est tuée en plein milieu de l'écriture.
             string tempPath = path + ".tmp";
             await File.WriteAllTextAsync(tempPath, json);
             File.Move(tempPath, path, overwrite: true);
+        }
+        catch (Exception ex)
+        {
+            // Écriture échouée (sérialisation, disque plein, permissions...) : le cache
+            // reste vide et le prochain chargement retombera sur le réseau. On logue
+            // pour pouvoir diagnostiquer au lieu d'un échec totalement silencieux.
+            Console.WriteLine($"[Cache] Écriture échouée pour la clé \"{key}\" ({path}) : {ex.GetType().Name} - {ex.Message}");
         }
         finally
         {
