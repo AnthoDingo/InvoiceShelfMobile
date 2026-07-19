@@ -28,7 +28,8 @@ public record Invoice(
     [property: JsonPropertyName("sent")]                    int            Sent,
     [property: JsonPropertyName("viewed")]                  int            Viewed,
     [property: JsonPropertyName("sequence_number")]         int            SequenceNumber,
-    [property: JsonPropertyName("exchange_rate")]           decimal        ExchangeRate,
+    // Nullable : peut être renvoyé null par l'API (aucune conversion appliquée).
+    [property: JsonPropertyName("exchange_rate")]           decimal?       ExchangeRate,
     [property: JsonPropertyName("base_sub_total")]          decimal        BaseSubTotal,
     [property: JsonPropertyName("base_total")]              decimal        BaseTotal,
     [property: JsonPropertyName("base_tax")]                decimal        BaseTax,

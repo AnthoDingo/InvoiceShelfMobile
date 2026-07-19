@@ -26,6 +26,13 @@ public partial class PaymentsViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
+        // Évite deux chargements simultanés (ex. Loaded qui refire pendant qu'un
+        // pull-to-refresh est déjà en cours) : ça doublait le nombre de requêtes
+        // en parallèle sur le même throttle et faisait échouer certaines pages
+        // par contention/timeout, empêchant le cache de s'écrire.
+        if (IsRefreshing)
+            return;
+
         // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
         // centralisée par ApiService : forceRefresh contourne le cache frais.
         IsRefreshing = true;
