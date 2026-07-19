@@ -7,12 +7,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  release:
-    name: Build & Release Android (Release)
+  version:
+    name: Extract version
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      build: ${{ steps.version.outputs.build }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,6 +33,19 @@ jobs:
           BUILD=$(git rev-list --count HEAD)
           echo "build=${BUILD}" >> "$GITHUB_OUTPUT"
 
+  build:
+    name: Build & Sign Android (${{ matrix.config }})
+    needs: version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Alpha, Beta, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       # ── .NET & MAUI ───────────────────────────────────────────────────────
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
@@ -49,51 +63,91 @@ jobs:
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > "${{ runner.temp }}/invoiceshelf.keystore"
 
-      # ── Build Release & Sign ──────────────────────────────────────────────
-      - name: Build & Sign (Release)
+      # ── Build & Sign ───────────────────────────────────────────────────────
+      - name: Build & Sign (${{ matrix.config }})
         run: >
           dotnet publish "Invoice Shelf/Invoice Shelf.csproj"
-          --configuration Release
+          --configuration ${{ matrix.config }}
           --framework net10.0-android
           --no-restore
           -p:AndroidSigningKeyStore="${{ runner.temp }}/invoiceshelf.keystore"
           -p:AndroidSigningKeyAlias="${{ secrets.KEY_ALIAS }}"
           -p:AndroidSigningKeyPass="${{ secrets.KEY_PASSWORD }}"
           -p:AndroidSigningStorePass="${{ secrets.KEYSTORE_PASSWORD }}"
-          -p:ApplicationDisplayVersion="${{ steps.version.outputs.version }}"
-          -p:ApplicationVersion="${{ steps.version.outputs.build }}"
+          -p:ApplicationDisplayVersion="${{ needs.version.outputs.version }}"
+          -p:ApplicationVersion="${{ needs.version.outputs.build }}"
 
-      # ── Trouver l'APK/AAB signé ───────────────────────────────────────────
-      - name: Locate signed artifacts
+      # ── Trouver et renommer l'APK/AAB signé ───────────────────────────────
+      - name: Locate & rename signed artifacts
         id: artifacts
         run: |
-          APK=$(find "Invoice Shelf/bin/Release/net10.0-android" -name "*Signed*.apk" | head -1)
-          AAB=$(find "Invoice Shelf/bin/Release/net10.0-android" -name "*.aab"        | head -1)
-          echo "apk=${APK}" >> "$GITHUB_OUTPUT"
-          echo "aab=${AAB}" >> "$GITHUB_OUTPUT"
-          echo "APK : ${APK}"
-          echo "AAB : ${AAB}"
+          OUT_DIR="Invoice Shelf/bin/${{ matrix.config }}/net10.0-android"
+          APK_SRC=$(find "$OUT_DIR" -name "*Signed*.apk" | head -1)
+          AAB_SRC=$(find "$OUT_DIR" -name "*.aab"        | head -1)
+
+          APK_DST="$OUT_DIR/InvoiceShelf-${{ matrix.config }}-${{ needs.version.outputs.tag }}.apk"
+          AAB_DST="$OUT_DIR/InvoiceShelf-${{ matrix.config }}-${{ needs.version.outputs.tag }}.aab"
+
+          cp "$APK_SRC" "$APK_DST"
+          cp "$AAB_SRC" "$AAB_DST"
+
+          echo "apk=${APK_DST}" >> "$GITHUB_OUTPUT"
+          echo "aab=${AAB_DST}" >> "$GITHUB_OUTPUT"
+          echo "APK : ${APK_DST}"
+          echo "AAB : ${AAB_DST}"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.config }}
+          path: |
+            ${{ steps.artifacts.outputs.apk }}
+            ${{ steps.artifacts.outputs.aab }}
+          retention-days: 7
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: android-*
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: ls -la artifacts
 
       # ── Créer la GitHub Release ───────────────────────────────────────────
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "Invoice Shelf Mobile ${{ steps.version.outputs.tag }}"
+          tag_name: ${{ needs.version.outputs.tag }}
+          name: "Invoice Shelf Mobile ${{ needs.version.outputs.tag }}"
           body: |
-            ## Invoice Shelf Mobile ${{ steps.version.outputs.tag }}
+            ## Invoice Shelf Mobile ${{ needs.version.outputs.tag }}
+
+            ### Builds disponibles
+            - **Alpha** : `InvoiceShelf-Alpha-${{ needs.version.outputs.tag }}.apk` / `.aab`
+            - **Beta** : `InvoiceShelf-Beta-${{ needs.version.outputs.tag }}.apk` / `.aab`
+            - **Release** : `InvoiceShelf-Release-${{ needs.version.outputs.tag }}.apk` / `.aab`
 
             ### Installation
-            Téléchargez le fichier `.apk` ci-dessous et installez-le sur votre appareil Android.
+            Téléchargez le fichier `.apk` correspondant ci-dessous et installez-le sur votre appareil Android.
+            Les fichiers `.aab` sont destinés à la publication sur le Play Store.
 
             > **Note :** L'installation depuis une source inconnue doit être autorisée dans les paramètres de votre appareil.
 
             ### Changelog
-            Voir les [commits](https://github.com/${{ github.repository }}/commits/${{ steps.version.outputs.tag }}) pour le détail des changements.
+            Voir les [commits](https://github.com/${{ github.repository }}/commits/${{ needs.version.outputs.tag }}) pour le détail des changements.
           draft: false
-          prerelease: ${{ contains(steps.version.outputs.tag, '-') }}
-          files: |
-            ${{ steps.artifacts.outputs.apk }}
-            ${{ steps.artifacts.outputs.aab }}
+          prerelease: ${{ contains(needs.version.outputs.tag, '-') }}
+          files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
