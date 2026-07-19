@@ -5,8 +5,9 @@
              xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              x:Class="InvoiceShelf.Views.Pages.CustomersPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:CustomersViewModel"
-             Title="Clients">
+             Title="{loc:Translate Shell_Customers}">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -28,7 +29,7 @@
             Padding="12,0">
             <SearchBar
                 Text="{Binding SearchText}"
-                Placeholder="Rechercher un client…"
+                Placeholder="{loc:Translate Customers_SearchPlaceholder}"
                 BackgroundColor="Transparent"/>
         </Border>
 
@@ -107,10 +108,10 @@
                     Padding="40,0" Spacing="12"
                     IsVisible="{Binding IsEmpty}">
                     <Image Aspect="AspectFit" HeightRequest="200" Source="empty_customers_icon.png"/>
-                    <Label HorizontalTextAlignment="Center" FontSize="20" FontAttributes="Bold" Text="Aucun client"/>
+                    <Label HorizontalTextAlignment="Center" FontSize="20" FontAttributes="Bold" Text="{loc:Translate Customers_EmptyTitle}"/>
                     <Label HorizontalTextAlignment="Center" FontSize="14"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                           Text="Vos clients apparaîtront ici."/>
+                           Text="{loc:Translate Customers_EmptySub}"/>
                 </VerticalStackLayout>
 
             </Grid>

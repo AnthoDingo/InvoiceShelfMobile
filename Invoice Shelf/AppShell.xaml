@@ -6,6 +6,7 @@
     xmlns:pages="clr-namespace:InvoiceShelf.Views.Pages"
     xmlns:auth="clr-namespace:InvoiceShelf.Views.Auth"
     xmlns:mi="http://www.aathifmahir.com/dotnet/2022/maui/icons"
+    xmlns:loc="clr-namespace:InvoiceShelf.Localization"
     Shell.FlyoutBehavior="Disabled"
     Title="InvoiceShelf">
 
@@ -18,37 +19,37 @@
     <!-- Application principale (onglets) -->
     <TabBar Route="HomePage">
         <ShellContent
-            Title="Accueil"
+            Title="{loc:Translate Shell_Home}"
             Icon="{mi:Material Icon=Home}"
             Route="DashboardPage"
             ContentTemplate="{DataTemplate pages:DashboardPage}"/>
         <ShellContent
-            Title="Factures"
+            Title="{loc:Translate Shell_Invoices}"
             Icon="{mi:Material Icon=Description}"
             Route="InvoicesPage"
             ContentTemplate="{DataTemplate pages:InvoicesPage}"/>
         <ShellContent
-            Title="Devis"
+            Title="{loc:Translate Shell_Estimates}"
             Icon="{mi:Material Icon=RequestQuote}"
             Route="EstimatesPage"
             ContentTemplate="{DataTemplate pages:EstimatesPage}"/>
         <ShellContent
-            Title="Clients"
+            Title="{loc:Translate Shell_Customers}"
             Icon="{mi:Material Icon=SupervisorAccount}"
             Route="CustomersPage"
             ContentTemplate="{DataTemplate pages:CustomersPage}"/>
         <ShellContent
-            Title="Paiements"
+            Title="{loc:Translate Shell_Payments}"
             Icon="{mi:Material Icon=AccountBalanceWallet}"
             Route="PaymentsPage"
             ContentTemplate="{DataTemplate pages:PaymentsPage}"/>
         <ShellContent
-            Title="Dépenses"
+            Title="{loc:Translate Shell_Expenses}"
             Icon="{mi:Material Icon=Receipt}"
             Route="ExpensesPage"
             ContentTemplate="{DataTemplate pages:ExpensesPage}"/>
         <ShellContent
-            Title="Plus"
+            Title="{loc:Translate Shell_More}"
             Icon="{mi:Material Icon=Menu}"
             Route="MorePage"
             ContentTemplate="{DataTemplate pages:MorePage}"/>

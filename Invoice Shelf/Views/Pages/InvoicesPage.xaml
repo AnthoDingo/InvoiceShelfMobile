@@ -5,8 +5,9 @@
              xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
              xmlns:controls="clr-namespace:InvoiceShelf.Controls"
              x:Class="InvoiceShelf.Views.Pages.InvoicesPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:InvoicesViewModel"
-             Title="Factures">
+             Title="{loc:Translate Shell_Invoices}">
 
     <Grid Style="{StaticResource ResponsiveContainer}">
         <tabview:TabView
@@ -60,41 +61,41 @@
             </tabview:TabView.SelectedHeaderTemplate>
 
             <!-- Brouillons -->
-            <tabview:TabViewItem Header="Brouillons" Column="0">
+            <tabview:TabViewItem Header="{loc:Translate Invoices_TabDrafts}" Column="0">
                 <Grid x:DataType="viewmodels:InvoicesViewModel">
                     <controls:InvoiceListView
                         ItemsSource="{Binding Drafts}"
                         IsRefreshing="{Binding IsRefreshing}"
                         RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenInvoiceCommand}"
-                        EmptyMessage="Aucun brouillon"
-                        EmptySubMessage="Vos factures brouillons apparaîtront ici."/>
+                        EmptyMessage="{loc:Translate Invoices_EmptyDraftsTitle}"
+                        EmptySubMessage="{loc:Translate Invoices_EmptyDraftsSub}"/>
                 </Grid>
             </tabview:TabViewItem>
 
             <!-- Envoyées -->
-            <tabview:TabViewItem Header="Envoyées" Column="1">
+            <tabview:TabViewItem Header="{loc:Translate Invoices_TabSent}" Column="1">
                 <Grid x:DataType="viewmodels:InvoicesViewModel">
                     <controls:InvoiceListView
                         ItemsSource="{Binding Sents}"
                         IsRefreshing="{Binding IsRefreshing}"
                         RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenInvoiceCommand}"
-                        EmptyMessage="Aucune facture envoyée"
-                        EmptySubMessage="Vos factures envoyées apparaîtront ici."/>
+                        EmptyMessage="{loc:Translate Invoices_EmptySentTitle}"
+                        EmptySubMessage="{loc:Translate Invoices_EmptySentSub}"/>
                 </Grid>
             </tabview:TabViewItem>
 
             <!-- Toutes -->
-            <tabview:TabViewItem Header="Toutes" Column="2">
+            <tabview:TabViewItem Header="{loc:Translate Invoices_TabAll}" Column="2">
                 <Grid x:DataType="viewmodels:InvoicesViewModel">
                     <controls:InvoiceListView
                         ItemsSource="{Binding Invoices}"
                         IsRefreshing="{Binding IsRefreshing}"
                         RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenInvoiceCommand}"
-                        EmptyMessage="Aucune facture"
-                        EmptySubMessage="Vos factures apparaîtront ici."/>
+                        EmptyMessage="{loc:Translate Invoices_EmptyAllTitle}"
+                        EmptySubMessage="{loc:Translate Invoices_EmptyAllSub}"/>
                 </Grid>
             </tabview:TabViewItem>
 

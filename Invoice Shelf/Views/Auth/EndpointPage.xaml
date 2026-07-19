@@ -4,6 +4,7 @@
              x:Class="InvoiceShelf.Views.Auth.EndpointPage"
              xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Auth"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:EndpointViewModel"
              Title="EndpointPage">
     <Shell.TitleView>
@@ -26,7 +27,7 @@
                 Margin="0,0,0,40"/>
 
             <Label
-                Text="Server URL"
+                Text="{loc:Translate Endpoint_ServerUrlLabel}"
                 FontSize="13"
                 FontAttributes="Bold"
                 TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"
@@ -48,7 +49,7 @@
             </Border>
 
             <Label
-                Text="URL requise"
+                Text="{loc:Translate Endpoint_UrlRequired}"
                 FontSize="12"
                 TextColor="{StaticResource StatusOverdue}"
                 Margin="4,4,0,0"
@@ -56,7 +57,7 @@
 
             <Label
                 Margin="0,16,0,0"
-                Text="Cette URL sera utilisée pour se connecter à votre installation auto-hébergée d'Invoice Shelf."
+                Text="{loc:Translate Endpoint_HelperText}"
                 FontSize="13"
                 TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                 LineBreakMode="WordWrap"/>
@@ -79,7 +80,7 @@
                         HorizontalOptions="Center"
                         VerticalOptions="Center"/>
                     <Label
-                        Text="Continuer"
+                        Text="{loc:Translate Endpoint_Continue}"
                         TextColor="White"
                         FontSize="16"
                         FontAttributes="Bold"

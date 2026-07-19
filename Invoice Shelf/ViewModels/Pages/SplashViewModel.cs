@@ -1,4 +1,5 @@
-﻿using InvoiceShelf.Services;
+﻿using InvoiceShelf.Resources.Strings;
+using InvoiceShelf.Services;
 using InvoiceShelf.Views.Auth;
 
 namespace InvoiceShelf.ViewModels.Pages
@@ -56,7 +57,7 @@ namespace InvoiceShelf.ViewModels.Pages
             catch (Exception ex)
             {
                 // Shell.Current est toujours disponible ici ; on évite MainPage qui peut être null.
-                await Shell.Current.DisplayAlert("Error", $"Failed to navigate to HomePage: {ex.Message}", "OK");
+                await Shell.Current.DisplayAlert(AppStrings.Get("Common_Error"), string.Format(AppStrings.Get("Splash_NavigationErrorFormat"), ex.Message), "OK");
             }
         }
     }

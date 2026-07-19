@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 using InvoiceShelf.Views.Auth;
 
@@ -50,7 +51,7 @@ namespace InvoiceShelf.ViewModels.Auth
             string? baseUrl = await SecureStorage.GetAsync("baseUrl");
             if (string.IsNullOrEmpty(baseUrl))
             {
-                await Shell.Current.DisplayAlertAsync("Erreur", "Aucun serveur configuré.", "OK");
+                await Shell.Current.DisplayAlertAsync(AppStrings.Get("Common_Error"), AppStrings.Get("Credential_NoServerConfigured"), "OK");
                 return;
             }
 
@@ -98,7 +99,7 @@ namespace InvoiceShelf.ViewModels.Auth
                 string? token = await _apiService.Login(Username!, Password!);
                 if (string.IsNullOrEmpty(token))
                 {
-                    ErrorMessage = "Identifiants incorrects. Vérifiez votre email et mot de passe.";
+                    ErrorMessage = AppStrings.Get("Credential_InvalidCredentials");
                     ErrorMessageVisible = true;
                     return;
                 }
@@ -108,7 +109,7 @@ namespace InvoiceShelf.ViewModels.Auth
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Erreur de connexion : {ex.Message}";
+                ErrorMessage = string.Format(AppStrings.Get("Credential_ConnectionErrorFormat"), ex.Message);
                 ErrorMessageVisible = true;
             }
             finally

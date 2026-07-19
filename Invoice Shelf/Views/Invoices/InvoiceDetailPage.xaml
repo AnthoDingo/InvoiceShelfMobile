@@ -5,6 +5,7 @@
              xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              x:Class="InvoiceShelf.Views.Invoices.InvoiceDetailPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:InvoiceDetailViewModel"
              Title="{Binding Invoice.InvoiceNumber}">
 
@@ -24,7 +25,7 @@
             Spacing="14"
             IsVisible="{Binding IsLoading}">
             <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
-            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+            <Label Text="{loc:Translate Common_Loading}" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
         </VerticalStackLayout>
 
         <!-- Contenu -->
@@ -70,11 +71,11 @@
 
                         <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
                             <VerticalStackLayout Grid.Column="0" Spacing="3">
-                                <Label Text="Date de facture" TextColor="White" Opacity="0.65" FontSize="11"/>
+                                <Label Text="{loc:Translate Invoice_InvoiceDate}" TextColor="White" Opacity="0.65" FontSize="11"/>
                                 <Label Text="{Binding Invoice.FormattedInvoiceDate}" TextColor="White" FontSize="13"/>
                             </VerticalStackLayout>
                             <VerticalStackLayout Grid.Column="1" Spacing="3">
-                                <Label Text="Date d'échéance" TextColor="White" Opacity="0.65" FontSize="11"/>
+                                <Label Text="{loc:Translate Invoice_DueDate}" TextColor="White" Opacity="0.65" FontSize="11"/>
                                 <Label Text="{Binding Invoice.FormattedDueDate}" TextColor="White" FontSize="13"/>
                             </VerticalStackLayout>
                         </Grid>
@@ -90,7 +91,7 @@
                             <Grid ColumnDefinitions="*,Auto">
                                 <Label
                                     Grid.Column="0"
-                                    Text="{Binding Invoice.FormattedDueAmount, StringFormat='Solde dû : {0}'}"
+                                    Text="{Binding Invoice.FormattedDueAmount, StringFormat={loc:Translate Invoice_DueBalanceFormat}}"
                                     TextColor="White"
                                     Opacity="0.75"
                                     FontSize="12"
@@ -113,7 +114,7 @@
                         <!-- Enregistrer un paiement (facture envoyée ou en retard) :
                              ouvre RecordPaymentPage avec cette facture pré-remplie. -->
                         <Button
-                            Text="Enregistrer un paiement"
+                            Text="{loc:Translate RecordPayment_Title}"
                             FontSize="14"
                             FontAttributes="Bold"
                             BackgroundColor="White"
@@ -136,7 +137,7 @@
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                     Padding="16">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="CLIENT" FontSize="11" FontAttributes="Bold"
+                        <Label Text="{loc:Translate Common_CustomerSectionTitle}" FontSize="11" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                                CharacterSpacing="1"/>
                         <Label Text="{Binding Invoice.Customer.Name}" FontSize="16" FontAttributes="Bold"/>
@@ -159,7 +160,7 @@
                     Padding="16"
                     IsVisible="{Binding HasItems}">
                     <VerticalStackLayout Spacing="0">
-                        <Label Text="ARTICLES" FontSize="11" FontAttributes="Bold"
+                        <Label Text="{loc:Translate Common_ItemsSectionTitle}" FontSize="11" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                                CharacterSpacing="1"
                                Margin="0,0,0,10"/>
@@ -191,22 +192,22 @@
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                     Padding="16">
                     <VerticalStackLayout Spacing="10">
-                        <Label Text="RÉCAPITULATIF" FontSize="11" FontAttributes="Bold"
+                        <Label Text="{loc:Translate Common_SummarySectionTitle}" FontSize="11" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                                CharacterSpacing="1"/>
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Sous-total" FontSize="14"
+                            <Label Grid.Column="0" Text="{loc:Translate Common_SubTotal}" FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
                             <Label Grid.Column="1" Text="{Binding Invoice.FormattedSubTotal}" FontSize="14" HorizontalTextAlignment="End"/>
                         </Grid>
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Taxes" FontSize="14"
+                            <Label Grid.Column="0" Text="{loc:Translate Common_Tax}" FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
                             <Label Grid.Column="1" Text="{Binding Invoice.FormattedTax}" FontSize="14" HorizontalTextAlignment="End"/>
                         </Grid>
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Remise" FontSize="14"
+                            <Label Grid.Column="0" Text="{loc:Translate Common_Discount}" FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
                             <Label Grid.Column="1" Text="{Binding Invoice.FormattedDiscount}" FontSize="14"
                                    TextColor="{StaticResource StatusCompleted}" HorizontalTextAlignment="End"/>
@@ -216,14 +217,14 @@
                                  BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"/>
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Total" FontSize="17" FontAttributes="Bold"/>
+                            <Label Grid.Column="0" Text="{loc:Translate Common_Total}" FontSize="17" FontAttributes="Bold"/>
                             <Label Grid.Column="1" Text="{Binding Invoice.FormattedTotal}"
                                    FontSize="17" FontAttributes="Bold"
                                    TextColor="{StaticResource Primary}" HorizontalTextAlignment="End"/>
                         </Grid>
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Solde dû" FontSize="14"
+                            <Label Grid.Column="0" Text="{loc:Translate Common_DueBalanceLabel}" FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
                             <Label Grid.Column="1" Text="{Binding Invoice.FormattedDueAmount}"
                                    FontSize="14" FontAttributes="Bold"
@@ -244,7 +245,7 @@
                 <!-- Modifier (visible uniquement sur une facture en brouillon) -->
                 <Button
                     Margin="16,12,16,0"
-                    Text="Modifier"
+                    Text="{loc:Translate Common_Edit}"
                     BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"
                     TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource White}}"
                     Command="{Binding EditInvoiceCommand}"
@@ -260,7 +261,7 @@
                     Padding="16"
                     IsVisible="{Binding HasNotes}">
                     <VerticalStackLayout Spacing="8">
-                        <Label Text="NOTES" FontSize="11" FontAttributes="Bold"
+                        <Label Text="{loc:Translate Common_NotesSectionTitle}" FontSize="11" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                                CharacterSpacing="1"/>
                         <Label Text="{Binding Invoice.Notes}" FontSize="14"

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using InvoiceShelf.Models.Admin;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 using InvoiceShelf.ViewModels.Invoices;
 
@@ -57,8 +58,8 @@ public partial class CreateEstimateViewModel : ObservableObject
     }
 
     public bool IsEditMode => _editingEstimateId.HasValue;
-    public string Title => IsEditMode ? "Modifier le devis" : "Nouveau devis";
-    public string SaveButtonText => IsEditMode ? "Enregistrer les modifications" : "Enregistrer en brouillon";
+    public string Title => IsEditMode ? AppStrings.Get("Estimate_EditTitle") : AppStrings.Get("Estimate_NewTitle");
+    public string SaveButtonText => IsEditMode ? AppStrings.Get("Common_SaveChanges") : AppStrings.Get("Common_SaveAsDraft");
 
     [ObservableProperty]
     private List<Customer> _customers = [];
@@ -161,7 +162,7 @@ public partial class CreateEstimateViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur de chargement : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_LoadingErrorFormat"), ex.Message);
         }
         finally
         {
@@ -179,7 +180,7 @@ public partial class CreateEstimateViewModel : ObservableObject
         Estimate? estimate = await _apiService.GetEstimate(id);
         if (estimate is null)
         {
-            ErrorMessage = "Impossible de charger le devis à modifier.";
+            ErrorMessage = AppStrings.Get("Estimate_LoadFailedMessage");
             return;
         }
 
@@ -257,13 +258,13 @@ public partial class CreateEstimateViewModel : ObservableObject
 
         if (SelectedCustomer is null)
         {
-            ErrorMessage = "Sélectionnez un client.";
+            ErrorMessage = AppStrings.Get("Common_SelectCustomerRequired");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(EstimateNumber))
         {
-            ErrorMessage = "Le numéro de devis est requis.";
+            ErrorMessage = AppStrings.Get("Estimate_NumberRequired");
             return;
         }
 
@@ -272,14 +273,14 @@ public partial class CreateEstimateViewModel : ObservableObject
         List<InvoiceLineItemViewModel> validItems = Items.Where(i => i.IsValid).ToList();
         if (validItems.Count == 0)
         {
-            ErrorMessage = "Ajoutez au moins un article valide (nom, quantité et prix).";
+            ErrorMessage = AppStrings.Get("Common_ItemsRequired");
             return;
         }
 
         CustomFieldInputViewModel? invalidCustomField = CustomFields.FirstOrDefault(f => !f.IsValid);
         if (invalidCustomField is not null)
         {
-            ErrorMessage = $"Le champ « {invalidCustomField.Label} » est obligatoire.";
+            ErrorMessage = string.Format(AppStrings.Get("Common_CustomFieldRequiredFormat"), invalidCustomField.Label);
             return;
         }
 
@@ -334,7 +335,7 @@ public partial class CreateEstimateViewModel : ObservableObject
 
             if (estimate is null)
             {
-                ErrorMessage = error ?? (IsEditMode ? "Échec de la mise à jour du devis." : "Échec de la création du devis.");
+                ErrorMessage = error ?? (IsEditMode ? AppStrings.Get("Estimate_UpdateFailedFallback") : AppStrings.Get("Estimate_CreateFailedFallback"));
                 return;
             }
 
@@ -353,7 +354,7 @@ public partial class CreateEstimateViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur réseau : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_NetworkErrorFormat"), ex.Message);
         }
         finally
         {

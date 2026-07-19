@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Shell_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Shell_Invoices" xml:space="preserve">
+    <value>Invoices</value>
+  </data>
+  <data name="Shell_Estimates" xml:space="preserve">
+    <value>Estimates</value>
+  </data>
+  <data name="Shell_Customers" xml:space="preserve">
+    <value>Customers</value>
+  </data>
+  <data name="Shell_Payments" xml:space="preserve">
+    <value>Payments</value>
+  </data>
+  <data name="Shell_Expenses" xml:space="preserve">
+    <value>Expenses</value>
+  </data>
+  <data name="Shell_More" xml:space="preserve">
+    <value>More</value>
+  </data>
+  <data name="Lock_Title" xml:space="preserve">
+    <value>App locked</value>
+  </data>
+  <data name="Lock_Subtitle" xml:space="preserve">
+    <value>Use your fingerprint or facial recognition to unlock the app.</value>
+  </data>
+  <data name="Lock_Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="Lock_Logout" xml:space="preserve">
+    <value>Log out</value>
+  </data>
+  <data name="Credential_Title" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Credential_ChangeServer" xml:space="preserve">
+    <value>Change server</value>
+  </data>
+  <data name="Credential_EmailLabel" xml:space="preserve">
+    <value>Email address</value>
+  </data>
+  <data name="Common_FieldRequired" xml:space="preserve">
+    <value>This field is required</value>
+  </data>
+  <data name="Credential_PasswordLabel" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="Credential_ForgotPassword" xml:space="preserve">
+    <value>Forgot your password?</value>
+  </data>
+  <data name="Credential_SignIn" xml:space="preserve">
+    <value>Sign in</value>
+  </data>
+  <data name="Credential_EmailPlaceholder" xml:space="preserve">
+    <value>your@email.com</value>
+  </data>
+  <data name="Endpoint_ServerUrlLabel" xml:space="preserve">
+    <value>Server URL</value>
+  </data>
+  <data name="Endpoint_UrlRequired" xml:space="preserve">
+    <value>URL is required</value>
+  </data>
+  <data name="Endpoint_HelperText" xml:space="preserve">
+    <value>This URL will be used to connect to your self-hosted Invoice Shelf installation.</value>
+  </data>
+  <data name="Endpoint_Continue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="Invoices_TabDrafts" xml:space="preserve">
+    <value>Drafts</value>
+  </data>
+  <data name="Invoices_TabSent" xml:space="preserve">
+    <value>Sent</value>
+  </data>
+  <data name="Invoices_TabAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Invoices_EmptyDraftsTitle" xml:space="preserve">
+    <value>No drafts</value>
+  </data>
+  <data name="Invoices_EmptyDraftsSub" xml:space="preserve">
+    <value>Your draft invoices will appear here.</value>
+  </data>
+  <data name="Invoices_EmptySentTitle" xml:space="preserve">
+    <value>No sent invoices</value>
+  </data>
+  <data name="Invoices_EmptySentSub" xml:space="preserve">
+    <value>Your sent invoices will appear here.</value>
+  </data>
+  <data name="Invoices_EmptyAllTitle" xml:space="preserve">
+    <value>No invoices</value>
+  </data>
+  <data name="Invoices_EmptyAllSub" xml:space="preserve">
+    <value>Your invoices will appear here.</value>
+  </data>
+  <data name="Estimates_TabDrafts" xml:space="preserve">
+    <value>Drafts</value>
+  </data>
+  <data name="Estimates_TabSent" xml:space="preserve">
+    <value>Sent</value>
+  </data>
+  <data name="Estimates_TabAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Estimates_EmptyDraftsTitle" xml:space="preserve">
+    <value>No drafts</value>
+  </data>
+  <data name="Estimates_EmptyDraftsSub" xml:space="preserve">
+    <value>Your draft estimates will appear here.</value>
+  </data>
+  <data name="Estimates_EmptySentTitle" xml:space="preserve">
+    <value>No sent estimates</value>
+  </data>
+  <data name="Estimates_EmptySentSub" xml:space="preserve">
+    <value>Your sent estimates will appear here.</value>
+  </data>
+  <data name="Estimates_EmptyAllTitle" xml:space="preserve">
+    <value>No estimates</value>
+  </data>
+  <data name="Estimates_EmptyAllSub" xml:space="preserve">
+    <value>Your estimates will appear here.</value>
+  </data>
+  <data name="Customers_SearchPlaceholder" xml:space="preserve">
+    <value>Search for a customer…</value>
+  </data>
+  <data name="Customers_EmptyTitle" xml:space="preserve">
+    <value>No customers</value>
+  </data>
+  <data name="Customers_EmptySub" xml:space="preserve">
+    <value>Your customers will appear here.</value>
+  </data>
+  <data name="Payments_EmptyTitle" xml:space="preserve">
+    <value>No payments</value>
+  </data>
+  <data name="Payments_EmptySub" xml:space="preserve">
+    <value>Received payments will appear here.</value>
+  </data>
+  <data name="Expenses_EmptyTitle" xml:space="preserve">
+    <value>No expenses</value>
+  </data>
+  <data name="Expenses_EmptySub" xml:space="preserve">
+    <value>Your expenses will appear here.</value>
+  </data>
+  <data name="Dashboard_GreetingFormat" xml:space="preserve">
+    <value>Hello, {0} 👋</value>
+  </data>
+  <data name="Dashboard_Subtitle" xml:space="preserve">
+    <value>Here's a summary of your activity</value>
+  </data>
+  <data name="Dashboard_ToCollect" xml:space="preserve">
+    <value>TO COLLECT</value>
+  </data>
+  <data name="Dashboard_Collected" xml:space="preserve">
+    <value>COLLECTED</value>
+  </data>
+  <data name="Dashboard_Drafts" xml:space="preserve">
+    <value>Drafts</value>
+  </data>
+  <data name="Dashboard_Sent" xml:space="preserve">
+    <value>Sent</value>
+  </data>
+  <data name="Dashboard_Overdue" xml:space="preserve">
+    <value>Overdue</value>
+  </data>
+  <data name="Dashboard_RecentInvoicesTitle" xml:space="preserve">
+    <value>RECENT INVOICES</value>
+  </data>
+  <data name="Dashboard_EmptyRecentInvoices" xml:space="preserve">
+    <value>No recent invoices</value>
+  </data>
+  <data name="More_Server" xml:space="preserve">
+    <value>SERVER</value>
+  </data>
+  <data name="More_Security" xml:space="preserve">
+    <value>SECURITY</value>
+  </data>
+  <data name="More_BiometricLock" xml:space="preserve">
+    <value>Biometric lock</value>
+  </data>
+  <data name="More_BiometricUnavailable" xml:space="preserve">
+    <value>Not available on this device</value>
+  </data>
+  <data name="More_Cache" xml:space="preserve">
+    <value>CACHE</value>
+  </data>
+  <data name="More_ClearCache" xml:space="preserve">
+    <value>Clear cache</value>
+  </data>
+  <data name="More_CacheSizeFormat" xml:space="preserve">
+    <value>Local data: {0}</value>
+  </data>
+  <data name="More_Actions" xml:space="preserve">
+    <value>ACTIONS</value>
+  </data>
+  <data name="More_Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="Common_Loading" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="CustomerDetail_InvoicesLabel" xml:space="preserve">
+    <value>INVOICES</value>
+  </data>
+  <data name="CustomerDetail_DueBalance" xml:space="preserve">
+    <value>BALANCE DUE</value>
+  </data>
+  <data name="CustomerDetail_EmptyInvoices" xml:space="preserve">
+    <value>No invoices for this customer</value>
+  </data>
+  <data name="CustomerDetail_Address" xml:space="preserve">
+    <value>ADDRESS</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common_Notes" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="Common_Optional" xml:space="preserve">
+    <value>Optional</value>
+  </data>
+  <data name="Common_Customer" xml:space="preserve">
+    <value>Customer</value>
+  </data>
+  <data name="Common_SelectCustomer" xml:space="preserve">
+    <value>Select a customer</value>
+  </data>
+  <data name="Common_Amount" xml:space="preserve">
+    <value>Amount</value>
+  </data>
+  <data name="RecordPayment_Title" xml:space="preserve">
+    <value>Record a payment</value>
+  </data>
+  <data name="RecordPayment_DueBalance" xml:space="preserve">
+    <value>Balance due:</value>
+  </data>
+  <data name="RecordPayment_InvoiceLabel" xml:space="preserve">
+    <value>Invoice</value>
+  </data>
+  <data name="RecordPayment_NoneOptional" xml:space="preserve">
+    <value>None (optional)</value>
+  </data>
+  <data name="RecordPayment_PaymentDate" xml:space="preserve">
+    <value>Payment date</value>
+  </data>
+  <data name="RecordPayment_PaymentNumber" xml:space="preserve">
+    <value>Payment number</value>
+  </data>
+  <data name="RecordPayment_PaymentNumberPlaceholder" xml:space="preserve">
+    <value>e.g. PAY-000012</value>
+  </data>
+  <data name="RecordPayment_PaymentMethod" xml:space="preserve">
+    <value>Payment method</value>
+  </data>
+  <data name="RecordPayment_SelectOptional" xml:space="preserve">
+    <value>Select (optional)</value>
+  </data>
+  <data name="Invoice_InvoiceDate" xml:space="preserve">
+    <value>Invoice date</value>
+  </data>
+  <data name="Invoice_DueDate" xml:space="preserve">
+    <value>Due date</value>
+  </data>
+  <data name="Invoice_InvoiceNumber" xml:space="preserve">
+    <value>Invoice number</value>
+  </data>
+  <data name="Invoice_InvoiceNumberPlaceholder" xml:space="preserve">
+    <value>e.g. INV-000012</value>
+  </data>
+  <data name="Invoice_DraftNotice" xml:space="preserve">
+    <value>This invoice will be saved as a draft. You can send it to the customer afterwards.</value>
+  </data>
+  <data name="Common_Template" xml:space="preserve">
+    <value>Template</value>
+  </data>
+  <data name="Common_SelectTemplate" xml:space="preserve">
+    <value>Select a template</value>
+  </data>
+  <data name="Common_ItemsSectionTitle" xml:space="preserve">
+    <value>ITEMS</value>
+  </data>
+  <data name="Common_SelectExistingItemOptional" xml:space="preserve">
+    <value>Choose an existing item (optional)</value>
+  </data>
+  <data name="Common_ItemNamePlaceholder" xml:space="preserve">
+    <value>Item name</value>
+  </data>
+  <data name="Common_QuantityShort" xml:space="preserve">
+    <value>Qty</value>
+  </data>
+  <data name="Common_UnitPriceShort" xml:space="preserve">
+    <value>Unit price</value>
+  </data>
+  <data name="Common_AddItem" xml:space="preserve">
+    <value>+ Add an item</value>
+  </data>
+  <data name="Common_CustomFieldsSectionTitle" xml:space="preserve">
+    <value>CUSTOM FIELDS</value>
+  </data>
+  <data name="Common_SubTotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="Common_Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="Estimate_EstimateDate" xml:space="preserve">
+    <value>Estimate date</value>
+  </data>
+  <data name="Estimate_ExpiryDate" xml:space="preserve">
+    <value>Expiry date</value>
+  </data>
+  <data name="Estimate_EstimateNumber" xml:space="preserve">
+    <value>Estimate number</value>
+  </data>
+  <data name="Estimate_EstimateNumberPlaceholder" xml:space="preserve">
+    <value>e.g. EST-000012</value>
+  </data>
+  <data name="Estimate_DraftNotice" xml:space="preserve">
+    <value>This estimate will be saved as a draft. You can send it to the customer afterwards.</value>
+  </data>
+  <data name="Expense_NewTitle" xml:space="preserve">
+    <value>New expense</value>
+  </data>
+  <data name="Expense_Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="Expense_SelectCategory" xml:space="preserve">
+    <value>Select a category</value>
+  </data>
+  <data name="Expense_ExpenseDate" xml:space="preserve">
+    <value>Expense date</value>
+  </data>
+  <data name="Common_SelectOptional" xml:space="preserve">
+    <value>Select (optional)</value>
+  </data>
+  <data name="Invoice_DueBalanceFormat" xml:space="preserve">
+    <value>Balance due: {0}</value>
+  </data>
+  <data name="Common_CustomerSectionTitle" xml:space="preserve">
+    <value>CUSTOMER</value>
+  </data>
+  <data name="Common_SummarySectionTitle" xml:space="preserve">
+    <value>SUMMARY</value>
+  </data>
+  <data name="Common_Tax" xml:space="preserve">
+    <value>Tax</value>
+  </data>
+  <data name="Common_Discount" xml:space="preserve">
+    <value>Discount</value>
+  </data>
+  <data name="Common_DueBalanceLabel" xml:space="preserve">
+    <value>Balance due</value>
+  </data>
+  <data name="Common_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common_NotesSectionTitle" xml:space="preserve">
+    <value>NOTES</value>
+  </data>
+  <data name="More_ClearCacheConfirmMessage" xml:space="preserve">
+    <value>Cached data (invoices, estimates, customers, etc.) will be reloaded from the server the next time it is displayed.</value>
+  </data>
+  <data name="Common_Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="More_BiometricConfirmFailedMessage" xml:space="preserve">
+    <value>Authentication could not be confirmed. Lock was not enabled.</value>
+  </data>
+  <data name="More_LogoutConfirmMessage" xml:space="preserve">
+    <value>Are you sure you want to log out?</value>
+  </data>
+  <data name="More_ChangeServerConfirmMessage" xml:space="preserve">
+    <value>This will log you out and clear your current connection information.</value>
+  </data>
+  <data name="Common_MegabytesUnit" xml:space="preserve">
+    <value>MB</value>
+  </data>
+  <data name="Common_KilobytesUnit" xml:space="preserve">
+    <value>KB</value>
+  </data>
+  <data name="Common_BytesUnit" xml:space="preserve">
+    <value>B</value>
+  </data>
+  <data name="Endpoint_InvalidUrlTitle" xml:space="preserve">
+    <value>Invalid URL</value>
+  </data>
+  <data name="Endpoint_InvalidUrlMessage" xml:space="preserve">
+    <value>The URL format is incorrect. Example: https://bills.example.com</value>
+  </data>
+  <data name="Endpoint_ConnectionFailedTitle" xml:space="preserve">
+    <value>Connection failed</value>
+  </data>
+  <data name="Endpoint_ErrorUnreachable" xml:space="preserve">
+    <value>Could not reach the server.
+
+Check:
+• that the URL is correct and reachable from this device;
+• your internet connection (Wi-Fi/mobile data);
+• that the server isn't blocked by a VPN, a firewall, or an IPv6 issue.
+
+Detail: {0}</value>
+  </data>
+  <data name="Endpoint_Error401" xml:space="preserve">
+    <value>The server responded but refused access (401). The version endpoint appears to be protected on this installation.</value>
+  </data>
+  <data name="Endpoint_Error403" xml:space="preserve">
+    <value>Access forbidden by the server (403). A firewall or reverse proxy may be blocking the request.</value>
+  </data>
+  <data name="Endpoint_Error404" xml:space="preserve">
+    <value>Server reachable but the Invoice Shelf API could not be found (404).
+Check that the URL points to the root of your installation (without /admin or any other subpath).</value>
+  </data>
+  <data name="Endpoint_Error5xxFormat" xml:space="preserve">
+    <value>The server returned an internal error ({0}).
+Try again later or check the server logs.</value>
+  </data>
+  <data name="Endpoint_Error408" xml:space="preserve">
+    <value>The server took too long to respond (timeout).
+It may be overloaded or still starting up. Please try again.</value>
+  </data>
+  <data name="Endpoint_ErrorUnexpectedFormat" xml:space="preserve">
+    <value>Unexpected server response (code {0}).
+{1}</value>
+  </data>
+  <data name="Common_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Credential_NoServerConfigured" xml:space="preserve">
+    <value>No server configured.</value>
+  </data>
+  <data name="Credential_InvalidCredentials" xml:space="preserve">
+    <value>Incorrect credentials. Check your email and password.</value>
+  </data>
+  <data name="Credential_ConnectionErrorFormat" xml:space="preserve">
+    <value>Connection error: {0}</value>
+  </data>
+  <data name="Splash_NavigationErrorFormat" xml:space="preserve">
+    <value>Failed to navigate to the home page: {0}</value>
+  </data>
+  <data name="Status_Overdue" xml:space="preserve">
+    <value>Overdue</value>
+  </data>
+  <data name="Status_Draft" xml:space="preserve">
+    <value>Draft</value>
+  </data>
+  <data name="Status_InvoiceSent" xml:space="preserve">
+    <value>Sent</value>
+  </data>
+  <data name="Status_Completed" xml:space="preserve">
+    <value>Paid</value>
+  </data>
+  <data name="Status_EstimateSent" xml:space="preserve">
+    <value>Sent</value>
+  </data>
+  <data name="Status_Viewed" xml:space="preserve">
+    <value>Viewed</value>
+  </data>
+  <data name="Status_Accepted" xml:space="preserve">
+    <value>Accepted</value>
+  </data>
+  <data name="Status_Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Status_Expired" xml:space="preserve">
+    <value>Expired</value>
+  </data>
+  <data name="Invoice_DueTodayLabel" xml:space="preserve">
+    <value>Due today</value>
+  </data>
+  <data name="Invoice_OverdueDaysFormat" xml:space="preserve">
+    <value>{0}d overdue</value>
+  </data>
+  <data name="Invoice_DaysRemainingFormat" xml:space="preserve">
+    <value>D-{0}</value>
+  </data>
+  <data name="Expense_NoCategoryFallback" xml:space="preserve">
+    <value>No category</value>
+  </data>
+  <data name="Biometric_ConfirmIdentityReason" xml:space="preserve">
+    <value>Confirm your identity to enable biometric lock.</value>
+  </data>
+  <data name="Lock_UnlockReason" xml:space="preserve">
+    <value>Unlock the app.</value>
+  </data>
+  <data name="Lock_AuthFailedMessage" xml:space="preserve">
+    <value>Authentication failed. Try again or log out.</value>
+  </data>
+  <data name="Api_NoTokenFound" xml:space="preserve">
+    <value>No token found. Please sign in again.</value>
+  </data>
+  <data name="Api_InvalidJsonFormat" xml:space="preserve">
+    <value>Invalid JSON response: {0}</value>
+  </data>
+  <data name="Api_TimeoutFormat" xml:space="preserve">
+    <value>Timed out ({0}s).</value>
+  </data>
+  <data name="Api_EmptyCredentials" xml:space="preserve">
+    <value>Credentials cannot be empty.</value>
+  </data>
+  <data name="Api_CreateInvoiceFailedFormat" xml:space="preserve">
+    <value>Failed to create the invoice (HTTP {0}).</value>
+  </data>
+  <data name="Api_EmptyOrInvalidResponseFormat" xml:space="preserve">
+    <value>Empty or invalid server response (HTTP {0}).</value>
+  </data>
+  <data name="Api_UpdateInvoiceFailedFormat" xml:space="preserve">
+    <value>Failed to update the invoice (HTTP {0}).</value>
+  </data>
+  <data name="Api_CreateEstimateFailedFormat" xml:space="preserve">
+    <value>Failed to create the estimate (HTTP {0}).</value>
+  </data>
+  <data name="Api_UpdateEstimateFailedFormat" xml:space="preserve">
+    <value>Failed to update the estimate (HTTP {0}).</value>
+  </data>
+  <data name="Api_CreatePaymentFailedFormat" xml:space="preserve">
+    <value>Failed to record the payment (HTTP {0}).</value>
+  </data>
+  <data name="Api_CreateExpenseFailedFormat" xml:space="preserve">
+    <value>Failed to create the expense (HTTP {0}).</value>
+  </data>
+  <data name="Expense_NoCategoriesMessage" xml:space="preserve">
+    <value>No expense category. Create one first in Invoice Shelf settings.</value>
+  </data>
+  <data name="Expense_CategoryRequired" xml:space="preserve">
+    <value>Category is required.</value>
+  </data>
+  <data name="Expense_CurrencyUnavailable" xml:space="preserve">
+    <value>Could not determine the company's currency. Check your connection.</value>
+  </data>
+  <data name="Expense_CreateFailedFallback" xml:space="preserve">
+    <value>Failed to create the expense.</value>
+  </data>
+  <data name="Common_NetworkErrorFormat" xml:space="preserve">
+    <value>Network error: {0}</value>
+  </data>
+  <data name="Common_SelectCustomerRequired" xml:space="preserve">
+    <value>Select a customer.</value>
+  </data>
+  <data name="Estimate_LoadFailedMessage" xml:space="preserve">
+    <value>Could not load the estimate to edit.</value>
+  </data>
+  <data name="Estimate_NumberRequired" xml:space="preserve">
+    <value>Estimate number is required.</value>
+  </data>
+  <data name="Common_ItemsRequired" xml:space="preserve">
+    <value>Add at least one valid item (name, quantity and price).</value>
+  </data>
+  <data name="Estimate_UpdateFailedFallback" xml:space="preserve">
+    <value>Failed to update the estimate.</value>
+  </data>
+  <data name="Estimate_CreateFailedFallback" xml:space="preserve">
+    <value>Failed to create the estimate.</value>
+  </data>
+  <data name="Invoice_LoadFailedMessage" xml:space="preserve">
+    <value>Could not load the invoice to edit.</value>
+  </data>
+  <data name="Invoice_NumberRequired" xml:space="preserve">
+    <value>Invoice number is required.</value>
+  </data>
+  <data name="Invoice_UpdateFailedFallback" xml:space="preserve">
+    <value>Failed to update the invoice.</value>
+  </data>
+  <data name="Invoice_CreateFailedFallback" xml:space="preserve">
+    <value>Failed to create the invoice.</value>
+  </data>
+  <data name="RecordPayment_NumberRequired" xml:space="preserve">
+    <value>Payment number is required.</value>
+  </data>
+  <data name="RecordPayment_CreateFailedFallback" xml:space="preserve">
+    <value>Failed to record the payment.</value>
+  </data>
+  <data name="Biometric_AuthRequiredTitle" xml:space="preserve">
+    <value>Authentication required</value>
+  </data>
+  <data name="Common_LoadingErrorFormat" xml:space="preserve">
+    <value>Loading error: {0}</value>
+  </data>
+  <data name="Common_InvalidAmount" xml:space="preserve">
+    <value>Invalid amount.</value>
+  </data>
+  <data name="Common_SaveChanges" xml:space="preserve">
+    <value>Save changes</value>
+  </data>
+  <data name="Common_SaveAsDraft" xml:space="preserve">
+    <value>Save as draft</value>
+  </data>
+  <data name="Common_CustomFieldRequiredFormat" xml:space="preserve">
+    <value>The “{0}” field is required.</value>
+  </data>
+  <data name="Invoice_EditTitle" xml:space="preserve">
+    <value>Edit invoice</value>
+  </data>
+  <data name="Invoice_NewTitle" xml:space="preserve">
+    <value>New invoice</value>
+  </data>
+  <data name="Estimate_EditTitle" xml:space="preserve">
+    <value>Edit estimate</value>
+  </data>
+  <data name="Estimate_NewTitle" xml:space="preserve">
+    <value>New estimate</value>
+  </data>
+</root>

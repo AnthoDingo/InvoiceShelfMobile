@@ -1,6 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using InvoiceShelf.Models.Admin;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 
 namespace InvoiceShelf.ViewModels.Expenses;
@@ -86,11 +87,11 @@ public partial class CreateExpenseViewModel : ObservableObject
             _companyCurrencyId = currencyTask.Result;
 
             if (Categories.Count == 0)
-                ErrorMessage = "Aucune catégorie de dépense. Créez-en une d'abord dans les paramètres d'InvoiceShelf.";
+                ErrorMessage = AppStrings.Get("Expense_NoCategoriesMessage");
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur de chargement : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_LoadingErrorFormat"), ex.Message);
         }
         finally
         {
@@ -107,7 +108,7 @@ public partial class CreateExpenseViewModel : ObservableObject
 
         if (SelectedCategory is null)
         {
-            ErrorMessage = "La catégorie est requise.";
+            ErrorMessage = AppStrings.Get("Expense_CategoryRequired");
             return;
         }
 
@@ -116,7 +117,7 @@ public partial class CreateExpenseViewModel : ObservableObject
         if (!decimal.TryParse(normalizedAmount, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal amountValue)
             || amountValue <= 0)
         {
-            ErrorMessage = "Montant invalide.";
+            ErrorMessage = AppStrings.Get("Common_InvalidAmount");
             return;
         }
 
@@ -126,7 +127,7 @@ public partial class CreateExpenseViewModel : ObservableObject
             _companyCurrencyId = await _apiService.GetCompanyCurrencyId();
             if (_companyCurrencyId is null)
             {
-                ErrorMessage = "Impossible de déterminer la devise de la société. Vérifiez la connexion.";
+                ErrorMessage = AppStrings.Get("Expense_CurrencyUnavailable");
                 return;
             }
         }
@@ -150,7 +151,7 @@ public partial class CreateExpenseViewModel : ObservableObject
 
             if (expense is null)
             {
-                ErrorMessage = error ?? "Échec de la création de la dépense.";
+                ErrorMessage = error ?? AppStrings.Get("Expense_CreateFailedFallback");
                 return;
             }
 
@@ -161,7 +162,7 @@ public partial class CreateExpenseViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur réseau : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_NetworkErrorFormat"), ex.Message);
         }
         finally
         {

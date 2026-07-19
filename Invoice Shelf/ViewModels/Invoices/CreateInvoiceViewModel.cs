@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using InvoiceShelf.Models.Admin;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 
 namespace InvoiceShelf.ViewModels.Invoices;
@@ -54,8 +55,8 @@ public partial class CreateInvoiceViewModel : ObservableObject
     }
 
     public bool IsEditMode => _editingInvoiceId.HasValue;
-    public string Title => IsEditMode ? "Modifier la facture" : "Nouvelle facture";
-    public string SaveButtonText => IsEditMode ? "Enregistrer les modifications" : "Enregistrer en brouillon";
+    public string Title => IsEditMode ? AppStrings.Get("Invoice_EditTitle") : AppStrings.Get("Invoice_NewTitle");
+    public string SaveButtonText => IsEditMode ? AppStrings.Get("Common_SaveChanges") : AppStrings.Get("Common_SaveAsDraft");
 
     [ObservableProperty]
     private List<Customer> _customers = [];
@@ -158,7 +159,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur de chargement : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_LoadingErrorFormat"), ex.Message);
         }
         finally
         {
@@ -177,7 +178,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
         Invoice? invoice = await _apiService.GetInvoice(id);
         if (invoice is null)
         {
-            ErrorMessage = "Impossible de charger la facture à modifier.";
+            ErrorMessage = AppStrings.Get("Invoice_LoadFailedMessage");
             return;
         }
 
@@ -255,13 +256,13 @@ public partial class CreateInvoiceViewModel : ObservableObject
 
         if (SelectedCustomer is null)
         {
-            ErrorMessage = "Sélectionnez un client.";
+            ErrorMessage = AppStrings.Get("Common_SelectCustomerRequired");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(InvoiceNumber))
         {
-            ErrorMessage = "Le numéro de facture est requis.";
+            ErrorMessage = AppStrings.Get("Invoice_NumberRequired");
             return;
         }
 
@@ -270,14 +271,14 @@ public partial class CreateInvoiceViewModel : ObservableObject
         List<InvoiceLineItemViewModel> validItems = Items.Where(i => i.IsValid).ToList();
         if (validItems.Count == 0)
         {
-            ErrorMessage = "Ajoutez au moins un article valide (nom, quantité et prix).";
+            ErrorMessage = AppStrings.Get("Common_ItemsRequired");
             return;
         }
 
         CustomFieldInputViewModel? invalidCustomField = CustomFields.FirstOrDefault(f => !f.IsValid);
         if (invalidCustomField is not null)
         {
-            ErrorMessage = $"Le champ « {invalidCustomField.Label} » est obligatoire.";
+            ErrorMessage = string.Format(AppStrings.Get("Common_CustomFieldRequiredFormat"), invalidCustomField.Label);
             return;
         }
 
@@ -332,7 +333,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
 
             if (invoice is null)
             {
-                ErrorMessage = error ?? (IsEditMode ? "Échec de la mise à jour de la facture." : "Échec de la création de la facture.");
+                ErrorMessage = error ?? (IsEditMode ? AppStrings.Get("Invoice_UpdateFailedFallback") : AppStrings.Get("Invoice_CreateFailedFallback"));
                 return;
             }
 
@@ -352,7 +353,7 @@ public partial class CreateInvoiceViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur réseau : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_NetworkErrorFormat"), ex.Message);
         }
         finally
         {

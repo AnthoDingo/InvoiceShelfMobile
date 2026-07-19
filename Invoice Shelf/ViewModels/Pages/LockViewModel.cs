@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 using InvoiceShelf.Views.Auth;
 
@@ -35,11 +36,11 @@ public partial class LockViewModel : ObservableObject
         ErrorMessage      = string.Empty;
         try
         {
-            bool ok = await _biometricLockService.AuthenticateAsync("Déverrouillez l'application.");
+            bool ok = await _biometricLockService.AuthenticateAsync(AppStrings.Get("Lock_UnlockReason"));
             if (ok)
                 await Shell.Current.GoToAsync($"//HomePage");
             else
-                ErrorMessage = "Authentification impossible. Réessayez ou déconnectez-vous.";
+                ErrorMessage = AppStrings.Get("Lock_AuthFailedMessage");
         }
         finally
         {

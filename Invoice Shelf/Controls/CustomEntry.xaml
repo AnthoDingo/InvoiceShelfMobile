@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:Class="InvoiceShelf.Controls.CustomEntry">
     <VerticalStackLayout>
         <Border 
@@ -18,7 +19,7 @@
         </Border>
 
         <Label
-            Text="Required field is empty"
+            Text="{loc:Translate Common_FieldRequired}"
             FontSize="12"
             TextColor="Red"
             IsVisible="{Binding IsError, Source={x:Reference Root}}" />
