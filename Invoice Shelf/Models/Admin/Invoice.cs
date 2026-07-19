@@ -68,7 +68,7 @@ public record Invoice(
         Status != "COMPLETED"
         && DueAmount > 0
         && DueDate is not null
-        && DateTime.TryParse(DueDate, out var due)
+        && DateTime.TryParse(DueDate, out DateTime due)
         && due.Date < DateTime.Today;
 
     public string FormattedStatus => Status switch
@@ -98,6 +98,76 @@ public record Invoice(
     public string FormattedTax       => FormatAmount(Tax);
     public string FormattedDueAmount => FormatAmount(DueAmount);
     public string FormattedDiscount  => DiscountValue == 0 ? "–" : $"-{FormatAmount(DiscountValue)}";
+
+    public bool HasDueAmount => DueAmount > 0;
+
+    // ── Progression jusqu'à l'échéance ────────────────────────────────────
+    // Fraction (0 à 1) du temps écoulé entre la date de facture et la date
+    // d'échéance, utilisée pour afficher une barre de progression visuelle.
+
+    public bool ShowDueProgress =>
+        DateTime.TryParse(InvoiceDate, out _) && DateTime.TryParse(DueDate, out _);
+
+    public double DueProgress
+    {
+        get
+        {
+            if (!DateTime.TryParse(InvoiceDate, out DateTime invoiceDate)
+                || !DateTime.TryParse(DueDate, out DateTime dueDate))
+            {
+                return 0d;
+            }
+
+            double totalDays = (dueDate.Date - invoiceDate.Date).TotalDays;
+            if (totalDays <= 0)
+            {
+                return 1d;
+            }
+
+            double elapsedDays = (DateTime.Today - invoiceDate.Date).TotalDays;
+            double fraction = elapsedDays / totalDays;
+            return Math.Clamp(fraction, 0d, 1d);
+        }
+    }
+
+    // Vert de 0 à 33%, orange de 33 à 66%, rouge de 66 à 100%.
+    public Color DueProgressColor
+    {
+        get
+        {
+            double progress = DueProgress;
+            if (progress <= 0.33d)
+            {
+                return Color.FromArgb("#10B981");
+            }
+
+            if (progress <= 0.66d)
+            {
+                return Color.FromArgb("#F59E0B");
+            }
+
+            return Color.FromArgb("#EF4444");
+        }
+    }
+
+    public string DueProgressLabel
+    {
+        get
+        {
+            if (!DateTime.TryParse(DueDate, out DateTime dueDate))
+            {
+                return string.Empty;
+            }
+
+            int daysRemaining = (dueDate.Date - DateTime.Today).Days;
+            return daysRemaining switch
+            {
+                > 0  => $"J-{daysRemaining}",
+                0    => "Échéance aujourd'hui",
+                _    => $"Retard de {Math.Abs(daysRemaining)} j"
+            };
+        }
+    }
 
     private string FormatAmount(decimal centimes)
     {
