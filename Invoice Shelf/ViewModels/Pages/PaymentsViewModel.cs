@@ -7,10 +7,11 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class PaymentsViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-
-    public PaymentsViewModel(ApiService apiService)
+    private readonly ICacheService _cacheService;
+        public PaymentsViewModel(ApiService apiService, ICacheService cacheService)
     {
-        _apiService   = apiService;
+        _apiService = apiService;
+        _cacheService = cacheService;
     }
 
     internal async void Loaded(object? sender, EventArgs e) => await LoadAsync(forceRefresh: false);
@@ -26,6 +27,19 @@ public partial class PaymentsViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
+        if (!forceRefresh)
+        {
+            var cached = await _cacheService.GetAsync<List<Payment>>(CacheKeys.Payments);
+            if (cached.IsFresh && cached.Value is not null)
+            {
+                Console.WriteLine($"[Payments] Cache utilisé (écrit le {cached.CachedAt}, {cached.Value.Count} paiement(s)).");
+                Payments = cached.Value;
+                return;
+            }
+
+            Console.WriteLine($"[Payments] Cache absent/périmé (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) : appel réseau.");
+        }
+
         IsRefreshing = true;
         try
         {

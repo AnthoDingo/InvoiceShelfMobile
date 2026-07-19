@@ -233,13 +233,13 @@
                 </Border>
 
                 <!-- Enregistrer un paiement (visible si solde dû > 0) -->
-                <Button
+                <!--<Button
                     Margin="16,12,16,0"
                     Text="Enregistrer un paiement"
                     BackgroundColor="{StaticResource Primary}"
                     TextColor="White"
                     Command="{Binding RecordPaymentCommand}"
-                    IsVisible="{Binding CanRecordPayment}"/>
+                    IsVisible="{Binding CanRecordPayment}"/>-->
 
                 <!-- Modifier (visible uniquement sur une facture en brouillon) -->
                 <Button
