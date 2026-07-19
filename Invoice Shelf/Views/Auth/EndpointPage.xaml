@@ -17,7 +17,7 @@
     </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Margin="25,40,25,0" Spacing="0">
+        <VerticalStackLayout Margin="25,40,25,0" Spacing="0" Style="{StaticResource ResponsiveContainer}">
 
             <Image
                 Source="logo.png"

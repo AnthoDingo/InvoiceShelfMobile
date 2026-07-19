@@ -424,4 +424,18 @@
         <Setter Property="SelectedTabColor" Value="{AppThemeBinding Light={StaticResource Gray950}, Dark={StaticResource Gray200}}" />
     </Style>
 
+
+    <!-- Conteneur responsive : sur tablette/desktop, limite la largeur du contenu et le centre
+         pour eviter que les pages (concues pour mobile) ne soient etirees sur grand ecran.
+         IMPORTANT : la valeur "non contrainte" de MaximumWidthRequest est +Infini (double.PositiveInfinity
+         par defaut cote MAUI), pas -1. -1 est le sentinel "auto" de WidthRequest/HeightRequest,
+         mais pour MaximumWidthRequest c'est une largeur max invalide (negative) : ca cassait
+         l'affichage sur telephone (contenu ecrase, scroll parasite). On utilise ici une valeur
+         volontairement tres grande (aucun ecran ne l'atteint) plutot que le mot-cle "Infinity"
+         pour ne pas dependre du parsing XAML des valeurs speciales de double. -->
+    <Style x:Key="ResponsiveContainer" TargetType="View">
+        <Setter Property="HorizontalOptions" Value="{OnIdiom Phone=Fill, Tablet=Center, Desktop=Center, Default=Fill}"/>
+        <Setter Property="MaximumWidthRequest" Value="{OnIdiom Phone=100000, Tablet=700, Desktop=760, Default=100000}"/>
+    </Style>
+
 </ResourceDictionary>
