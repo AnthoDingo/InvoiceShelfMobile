@@ -21,17 +21,15 @@ namespace InvoiceShelf.ViewModels.Estimates;
 public partial class CreateEstimateViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
     // Utilisé en repli si le serveur n'expose aucun template (ne devrait pas arriver).
     private const string FallbackTemplateName = "estimate1";
 
     private int? _editingEstimateId;
 
-    public CreateEstimateViewModel(ApiService apiService, ICacheService cacheService)
+    public CreateEstimateViewModel(ApiService apiService)
     {
         _apiService = apiService;
-        _cacheService = cacheService;
         Items.CollectionChanged += (_, _) => RecalculateTotals();
         AddItem();
         Task.Run(LoadAsync);
@@ -340,8 +338,6 @@ public partial class CreateEstimateViewModel : ObservableObject
                 return;
             }
 
-            // La liste des devis mise en cache est désormais périmée.
-            await _cacheService.RemoveAsync(CacheKeys.Estimates);
 
             if (IsEditMode)
             {

@@ -8,12 +8,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class CustomerDetailViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public CustomerDetailViewModel(ApiService apiService, ICacheService cacheService)
+    public CustomerDetailViewModel(ApiService apiService)
     {
         _apiService = apiService;
-        _cacheService = cacheService;
     }
 
     public string CustomerIdParam
@@ -65,33 +63,17 @@ public partial class CustomerDetailViewModel : ObservableObject
 
     private async Task LoadCustomer(int id)
     {
-        // Sert le cache si à la fois la fiche client et la liste des factures
-        // sont encore fraîches (< 7 jours) : évite un appel réseau au premier
-        // affichage. La liste des factures réutilise la même clé de cache que
-        // la page Factures, pour ne pas dupliquer les données en local.
-        var cachedCustomer = await _cacheService.GetAsync<Customer>(CacheKeys.CustomerDetail(id));
-        var cachedInvoices = await _cacheService.GetAsync<List<Invoice>>(CacheKeys.Invoices);
-
-        if (cachedCustomer.IsFresh && cachedCustomer.Value is not null &&
-            cachedInvoices.IsFresh && cachedInvoices.Value is not null)
-        {
-            Customer = cachedCustomer.Value;
-            Invoices = cachedInvoices.Value
-                .Where(i => i.CustomerId == id)
-                .OrderByDescending(i => i.InvoiceDate);
-            return;
-        }
-
         IsLoading = true;
         try
         {
             // Les deux appels sont indépendants : on les lance en parallèle.
-            var invoicesTask = _apiService.GetInvoices();
-            var customerTask = _apiService.GetCustomer(id);
+            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+            // centralisée par ApiService.
+            Task<List<Invoice>> invoicesTask = _apiService.GetInvoices();
+            Task<Customer?>     customerTask = _apiService.GetCustomer(id);
             await Task.WhenAll(invoicesTask, customerTask);
 
-            List<Invoice> allInvoices = invoicesTask.Result;
-            Invoices = allInvoices
+            Invoices = invoicesTask.Result
                 .Where(i => i.CustomerId == id)
                 .OrderByDescending(i => i.InvoiceDate);
 
@@ -100,10 +82,6 @@ public partial class CustomerDetailViewModel : ObservableObject
             // partiel et ne contient pas le solde dû, d'où le champ vide observé.
             Customer = customerTask.Result
                 ?? Invoices.FirstOrDefault()?.Customer;
-
-            await _cacheService.SetAsync(CacheKeys.Invoices, allInvoices);
-            if (Customer is not null)
-                await _cacheService.SetAsync(CacheKeys.CustomerDetail(id), Customer);
         }
         catch (Exception ex)
         {

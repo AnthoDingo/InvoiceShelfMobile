@@ -10,7 +10,7 @@ namespace InvoiceShelf.Services;
 public interface IBiometricLockService
 {
     /// <summary>Vrai si l'utilisateur a activé le verrouillage biométrique dans les paramètres.</summary>
-    bool IsEnabled { get; }
+    Task<bool> IsEnabledAsync();
 
     /// <summary>Vérifie si un capteur biométrique est disponible et configuré sur l'appareil.</summary>
     Task<bool> IsAvailableAsync();
@@ -30,22 +30,65 @@ public interface IBiometricLockService
 
 public class BiometricLockService : IBiometricLockService
 {
-    private const string PreferenceKey = "biometric_lock_enabled";
+    // Sécurité : la préférence est stockée dans SecureStorage (adossé au Keystore
+    // Android) et non dans Preferences (SharedPreferences en clair), afin qu'elle ne
+    // soit pas trivialement modifiable sur un appareil compromis. Cela reste une
+    // protection "d'épaule" : les données elles-mêmes sont protégées par ailleurs
+    // (token en SecureStorage, purge du cache à la déconnexion).
+    private const string StorageKey = "biometric_lock_enabled";
+
+    /// <summary>Ancienne clé Preferences (versions ≤ 1.4.0), migrée vers SecureStorage.</summary>
+    private const string LegacyPreferenceKey = "biometric_lock_enabled";
 
     private readonly IBiometricAuthentication _biometric;
+
+    // Cache mémoire pour éviter un aller-retour SecureStorage (opération async
+    // potentiellement coûteuse) à chaque OnResume.
+    private bool? _cachedEnabled;
 
     public BiometricLockService(IBiometricAuthentication biometric)
     {
         _biometric = biometric ?? throw new ArgumentNullException(nameof(biometric));
     }
 
-    public bool IsEnabled => Preferences.Default.Get(PreferenceKey, false);
+    public async Task<bool> IsEnabledAsync()
+    {
+        if (_cachedEnabled.HasValue)
+            return _cachedEnabled.Value;
+
+        try
+        {
+            string? stored = await SecureStorage.Default.GetAsync(StorageKey);
+
+            if (stored is null && Preferences.Default.ContainsKey(LegacyPreferenceKey))
+            {
+                // Migration depuis l'ancien stockage Preferences (non chiffré).
+                bool legacyValue = Preferences.Default.Get(LegacyPreferenceKey, false);
+                if (legacyValue)
+                    await SecureStorage.Default.SetAsync(StorageKey, "true");
+                Preferences.Default.Remove(LegacyPreferenceKey);
+
+                _cachedEnabled = legacyValue;
+                return legacyValue;
+            }
+
+            _cachedEnabled = stored == "true";
+            return _cachedEnabled.Value;
+        }
+        catch
+        {
+            // SecureStorage indisponible (Keystore corrompu, plateforme non supportée...) :
+            // on considère le verrou désactivé plutôt que de bloquer l'utilisateur,
+            // le token d'API restant la vraie barrière d'accès aux données.
+            return false;
+        }
+    }
 
     public async Task<bool> IsAvailableAsync()
     {
         try
         {
-            var availability = await _biometric.CheckAvailabilityAsync();
+            AvailabilityResult availability = await _biometric.CheckAvailabilityAsync();
             return availability.IsAvailable;
         }
         catch
@@ -60,12 +103,12 @@ public class BiometricLockService : IBiometricLockService
     {
         try
         {
-            var request = new AuthenticationRequest("Authentification requise", reason)
+            AuthenticationRequest request = new AuthenticationRequest("Authentification requise", reason)
             {
                 CancelTitle = "Annuler"
             };
 
-            var result = await _biometric.AuthenticateAsync(request);
+            AuthenticationResult result = await _biometric.AuthenticateAsync(request);
             return result.IsSuccessful;
         }
         catch
@@ -80,10 +123,27 @@ public class BiometricLockService : IBiometricLockService
             "Confirmez votre identité pour activer le verrouillage biométrique.");
 
         if (confirmed)
-            Preferences.Default.Set(PreferenceKey, true);
+        {
+            try
+            {
+                await SecureStorage.Default.SetAsync(StorageKey, "true");
+                _cachedEnabled = true;
+            }
+            catch
+            {
+                // Impossible de persister (Keystore indisponible) : on n'active pas
+                // le verrou pour rester cohérent entre l'UI et l'état réel.
+                return false;
+            }
+        }
 
         return confirmed;
     }
 
-    public void Disable() => Preferences.Default.Set(PreferenceKey, false);
+    public void Disable()
+    {
+        SecureStorage.Default.Remove(StorageKey);
+        Preferences.Default.Remove(LegacyPreferenceKey);
+        _cachedEnabled = false;
+    }
 }

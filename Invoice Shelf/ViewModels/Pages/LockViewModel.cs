@@ -8,11 +8,13 @@ public partial class LockViewModel : ObservableObject
 {
     private readonly IBiometricLockService _biometricLockService;
     private readonly ApiService _apiService;
+    private readonly ICacheService _cacheService;
 
-    public LockViewModel(IBiometricLockService biometricLockService, ApiService apiService)
+    public LockViewModel(IBiometricLockService biometricLockService, ApiService apiService, ICacheService cacheService)
     {
         _biometricLockService = biometricLockService;
         _apiService            = apiService;
+        _cacheService          = cacheService;
     }
 
     // Se déclenche à chaque affichage de la page (contrairement aux autres pages de
@@ -54,6 +56,12 @@ public partial class LockViewModel : ObservableObject
         {
             SecureStorage.Default.Remove("token");
             _biometricLockService.Disable();
+
+            // Sécurité : purge le cache disque (factures, clients, paiements...) pour
+            // qu'aucune donnée métier du compte déconnecté ne subsiste sur l'appareil.
+            try { await _cacheService.ClearAllAsync(); }
+            catch { /* la déconnexion doit aboutir même si la purge échoue */ }
+
             await Shell.Current.GoToAsync($"//{nameof(CredentialPage)}");
         }
     }

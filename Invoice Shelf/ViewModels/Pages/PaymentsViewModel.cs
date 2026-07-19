@@ -7,12 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class PaymentsViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public PaymentsViewModel(ApiService apiService, ICacheService cacheService)
+    public PaymentsViewModel(ApiService apiService)
     {
-        _apiService   = apiService;
-        _cacheService = cacheService;
+        _apiService = apiService;
     }
 
     internal async void Loaded(object? sender, EventArgs e) => await LoadAsync(forceRefresh: false);
@@ -28,22 +26,20 @@ public partial class PaymentsViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cached = await _cacheService.GetAsync<List<Payment>>(CacheKeys.Payments);
-            if (cached.IsFresh && cached.Value is not null)
-            {
-                Payments = cached.Value;
-                return;
-            }
-        }
+        // Évite deux chargements simultanés (ex. Loaded qui refire pendant qu'un
+        // pull-to-refresh est déjà en cours) : ça doublait le nombre de requêtes
+        // en parallèle sur le même throttle et faisait échouer certaines pages
+        // par contention/timeout, empêchant le cache de s'écrire.
+        if (IsRefreshing)
+            return;
 
+        // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+        // centralisée par ApiService : forceRefresh contourne le cache frais.
         IsRefreshing = true;
         try
         {
-            var data = await _apiService.GetPayments();
+            List<Payment> data = await _apiService.GetPayments(forceRefresh);
             Payments = data;
-            await _cacheService.SetAsync(CacheKeys.Payments, data);
         }
         catch (Exception ex) { Console.WriteLine($"Erreur chargement paiements : {ex.Message}"); }
         finally { IsRefreshing = false; }
@@ -52,4 +48,8 @@ public partial class PaymentsViewModel : ObservableObject
     /// <summary>Déclenché par le pull-to-refresh : ignore systématiquement le cache.</summary>
     [RelayCommand]
     private async Task Refresh() => await LoadAsync(forceRefresh: true);
+
+    /// <summary>Ouvre le formulaire d'enregistrement d'un paiement (mode autonome).</summary>
+    [RelayCommand]
+    private async Task RecordPayment() => await Shell.Current.GoToAsync("RecordPaymentPage");
 }

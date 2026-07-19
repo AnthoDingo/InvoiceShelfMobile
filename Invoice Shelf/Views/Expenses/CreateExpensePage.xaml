@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Invoices"
+             xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Expenses"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
-             x:Class="InvoiceShelf.Views.Invoices.RecordPaymentPage"
-             x:DataType="viewmodels:RecordPaymentViewModel"
-             Title="Enregistrer un paiement">
+             x:Class="InvoiceShelf.Views.Expenses.CreateExpensePage"
+             x:DataType="viewmodels:CreateExpenseViewModel"
+             Title="Nouvelle dépense">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -14,7 +14,7 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid Style="{StaticResource ResponsiveContainer}">
+    <Grid>
 
         <!-- Chargement -->
         <VerticalStackLayout
@@ -30,24 +30,6 @@
         <ScrollView IsVisible="{Binding IsLoading, Converter={StaticResource InverseBoolConverter}}">
             <VerticalStackLayout Spacing="16" Padding="16,16,16,32">
 
-                <!-- Contexte : facture concernée (absent en mode autonome) -->
-                <Border
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 14"
-                    BackgroundColor="{StaticResource Secondary}"
-                    Padding="16"
-                    IsVisible="{Binding Invoice, Converter={StaticResource IsNotNullConverter}}">
-                    <VerticalStackLayout Spacing="4">
-                        <Label Text="{Binding Invoice.InvoiceNumber}" FontSize="16" FontAttributes="Bold"
-                               TextColor="{StaticResource PrimaryDarkText}"/>
-                        <Grid ColumnDefinitions="Auto,Auto" ColumnSpacing="4">
-                            <Label Grid.Column="0" Text="Solde dû :" FontSize="13" TextColor="{StaticResource PrimaryDarkText}"/>
-                            <Label Grid.Column="1" Text="{Binding Invoice.FormattedDueAmount}" FontSize="13" FontAttributes="Bold"
-                                   TextColor="{StaticResource PrimaryDarkText}"/>
-                        </Grid>
-                    </VerticalStackLayout>
-                </Border>
-
                 <!-- Erreur -->
                 <Label
                     Text="{Binding ErrorMessage}"
@@ -55,26 +37,15 @@
                     FontSize="13"
                     IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"/>
 
-                <!-- Mode autonome : choix du client -->
-                <VerticalStackLayout Spacing="6" IsVisible="{Binding IsStandalone}">
-                    <Label Text="Client" FontSize="12" FontAttributes="Bold"
+                <!-- Catégorie -->
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Catégorie" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                     <Picker
-                        ItemsSource="{Binding Customers}"
-                        SelectedItem="{Binding SelectedCustomer}"
+                        ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}"
                         ItemDisplayBinding="{Binding Name}"
-                        Title="Sélectionner un client"/>
-                </VerticalStackLayout>
-
-                <!-- Mode autonome : facture impayée du client (optionnel) -->
-                <VerticalStackLayout Spacing="6" IsVisible="{Binding IsStandalone}">
-                    <Label Text="Facture" FontSize="12" FontAttributes="Bold"
-                           TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
-                    <Picker
-                        ItemsSource="{Binding CustomerInvoices}"
-                        SelectedItem="{Binding SelectedInvoice}"
-                        ItemDisplayBinding="{Binding InvoiceNumber}"
-                        Title="Aucune (optionnel)"/>
+                        Title="Sélectionner une catégorie"/>
                 </VerticalStackLayout>
 
                 <!-- Montant -->
@@ -87,21 +58,25 @@
                         Keyboard="Numeric"/>
                 </VerticalStackLayout>
 
-                <!-- Date de paiement -->
+                <!-- Date de la dépense -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Date du paiement" FontSize="12" FontAttributes="Bold"
+                    <Label Text="Date de la dépense" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
-                    <DatePicker Date="{Binding PaymentDate}"/>
+                    <DatePicker Date="{Binding ExpenseDate}"/>
                 </VerticalStackLayout>
 
-                <!-- Numéro de paiement -->
+                <!-- Client (optionnel) -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Numéro de paiement" FontSize="12" FontAttributes="Bold"
+                    <Label Text="Client" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
-                    <Entry Text="{Binding PaymentNumber}" Placeholder="ex. PAY-000012"/>
+                    <Picker
+                        ItemsSource="{Binding Customers}"
+                        SelectedItem="{Binding SelectedCustomer}"
+                        ItemDisplayBinding="{Binding Name}"
+                        Title="Sélectionner (optionnel)"/>
                 </VerticalStackLayout>
 
-                <!-- Mode de paiement -->
+                <!-- Mode de paiement (optionnel) -->
                 <VerticalStackLayout Spacing="6">
                     <Label Text="Mode de paiement" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>

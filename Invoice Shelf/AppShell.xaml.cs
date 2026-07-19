@@ -13,5 +13,6 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("RecordPaymentPage",   typeof(InvoiceShelf.Views.Invoices.RecordPaymentPage));
         Routing.RegisterRoute("CreateInvoicePage",   typeof(InvoiceShelf.Views.Invoices.CreateInvoicePage));
         Routing.RegisterRoute("CreateEstimatePage",  typeof(InvoiceShelf.Views.Estimates.CreateEstimatePage));
+        Routing.RegisterRoute("CreateExpensePage",   typeof(InvoiceShelf.Views.Expenses.CreateExpensePage));
     }
 }

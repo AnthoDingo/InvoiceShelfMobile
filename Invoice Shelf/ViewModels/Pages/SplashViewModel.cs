@@ -48,7 +48,7 @@ namespace InvoiceShelf.ViewModels.Pages
 
             try
             {
-                if (_biometricLockService.IsEnabled)
+                if (await _biometricLockService.IsEnabledAsync())
                     await Shell.Current.GoToAsync($"//LockPage");
                 else
                     await Shell.Current.GoToAsync($"//HomePage");
