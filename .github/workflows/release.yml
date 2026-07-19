@@ -70,6 +70,7 @@ jobs:
           --configuration ${{ matrix.config }}
           --framework net10.0-android
           --no-restore
+          -p:AndroidKeyStore=true
           -p:AndroidSigningKeyStore="${{ runner.temp }}/invoiceshelf.keystore"
           -p:AndroidSigningKeyAlias="${{ secrets.KEY_ALIAS }}"
           -p:AndroidSigningKeyPass="${{ secrets.KEY_PASSWORD }}"
@@ -151,3 +152,4 @@ jobs:
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
