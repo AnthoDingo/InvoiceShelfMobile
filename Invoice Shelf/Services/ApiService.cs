@@ -214,28 +214,66 @@ public class ApiService
     private async Task<(List<TItem> Items, bool Complete)> GetAllPages<TResponse, TItem>(string path)
         where TResponse : IPaginatedResponse<TItem>
     {
-        List<TItem> results = new List<TItem>();
         char separator = path.Contains('?') ? '&' : '?';
 
-        // Garde-fou : évite une boucle infinie si le serveur renvoie un "meta"
-        // incohérent (last_page qui n'augmente jamais, par exemple).
+        // Garde-fou : évite de tirer un nombre déraisonnable de pages en parallèle
+        // si le serveur renvoie un "meta" incohérent (last_page qui explose, etc.).
         const int maxPages = 200;
 
-        for (int page = 1; page <= maxPages; page++)
+        // Première page : sert aussi à connaître le nombre total de pages via meta.last_page.
+        ApiResponse<TResponse> first = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page=1", authenticated: true);
+        if (!first.IsSuccess || first.Value is null)
+            return (new List<TItem>(), false); // Échec réseau/HTTP : liste incomplète.
+
+        PaginationMeta? meta = first.Value.Meta;
+        if (meta is null || meta.CurrentPage >= meta.LastPage)
+            return (new List<TItem>(first.Value.Data), true);
+
+        int lastPage = Math.Min(meta.LastPage, maxPages);
+        bool truncatedByGuard = lastPage < meta.LastPage;
+
+        // Pages restantes récupérées en parallèle (limitées à 5 requêtes concurrentes)
+        // au lieu d'une boucle séquentielle : sur un gros volume (des dizaines de
+        // pages), ça faisait plusieurs dizaines de secondes de chargement.
+        List<TItem>?[] pageData = new List<TItem>?[lastPage + 1];
+        pageData[1] = first.Value.Data;
+        bool allPagesOk = true;
+
+        using SemaphoreSlim throttle = new SemaphoreSlim(5);
+
+        IEnumerable<Task> tasks = Enumerable.Range(2, lastPage - 1).Select(async page =>
         {
-            ApiResponse<TResponse> res = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page={page}", authenticated: true);
-            if (!res.IsSuccess || res.Value is null)
-                return (results, false); // Échec réseau/HTTP : liste incomplète.
+            await throttle.WaitAsync();
+            try
+            {
+                ApiResponse<TResponse> res = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page={page}", authenticated: true);
+                if (!res.IsSuccess || res.Value is null)
+                {
+                    allPagesOk = false;
+                    return;
+                }
+                pageData[page] = res.Value.Data;
+            }
+            finally
+            {
+                throttle.Release();
+            }
+        });
 
-            results.AddRange(res.Value.Data);
+        await Task.WhenAll(tasks);
 
-            PaginationMeta? meta = res.Value.Meta;
-            if (meta is null || meta.CurrentPage >= meta.LastPage)
-                return (results, true);
+        List<TItem> results = new List<TItem>();
+        for (int page = 1; page <= lastPage; page++)
+        {
+            if (pageData[page] is null)
+            {
+                allPagesOk = false;
+                continue;
+            }
+            results.AddRange(pageData[page]!);
         }
 
-        // Garde-fou maxPages atteint : la liste est considérée incomplète.
-        return (results, false);
+        return (results, allPagesOk && !truncatedByGuard);
     }
 
     // ── Cache des requêtes GET ──────────────────────────────────────────────
@@ -257,7 +295,16 @@ public class ApiService
         {
             CacheResult<T> cached = await _cache.GetAsync<T>(key);
             if (cached.IsFresh && cached.Value is not null)
+            {
+                Console.WriteLine($"[ApiCache] HIT  {key}");
                 return cached.Value;
+            }
+
+            Console.WriteLine($"[ApiCache] MISS {key} (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) → réseau.");
+        }
+        else
+        {
+            Console.WriteLine($"[ApiCache] SKIP {key} (forceRefresh) → réseau.");
         }
 
         T? value = await fetch();
@@ -281,10 +328,23 @@ public class ApiService
         {
             CacheResult<List<TItem>> cached = await _cache.GetAsync<List<TItem>>(key);
             if (cached.IsFresh && cached.Value is not null)
+            {
+                Console.WriteLine($"[ApiCache] HIT  {key} ({cached.Value.Count} élément(s), écrit le {cached.CachedAt}).");
                 return cached.Value;
+            }
+
+            Console.WriteLine($"[ApiCache] MISS {key} (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) → réseau paginé.");
+        }
+        else
+        {
+            Console.WriteLine($"[ApiCache] SKIP {key} (forceRefresh) → réseau paginé.");
         }
 
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
         (List<TItem> items, bool complete) = await GetAllPages<TResponse, TItem>(path);
+        sw.Stop();
+        Console.WriteLine($"[ApiCache] Réseau paginé {key} : {items.Count} élément(s), complete={complete}, {sw.ElapsedMilliseconds} ms.");
+
         if (complete)
         {
             await _cache.SetAsync(key, items);
