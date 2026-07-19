@@ -23,7 +23,7 @@
     <Configurations>Debug;Release;Alpha;Beta</Configurations>
 
     <!-- Localisation FR/EN : seules ces cultures sont packagées (langue choisie par le système, pas de sélecteur dans l'app) -->
-    <SatelliteResourceLanguages>en;fr</SatelliteResourceLanguages>
+    <SatelliteResourceLanguages>en;fr;it;es;de</SatelliteResourceLanguages>
   </PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)' == 'ALPHA'">

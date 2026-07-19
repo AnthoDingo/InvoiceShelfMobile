@@ -53,6 +53,8 @@ namespace InvoiceShelf.ViewModels.Pages
         [ObservableProperty]
         private bool _isClearingCache;
 
+        public string AppVersion => $"Invoice Shelf Mobile · v{AppInfo.Current.VersionString}";
+
         private async Task LoadCacheSizeAsync()
         {
             try

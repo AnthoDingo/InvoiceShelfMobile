@@ -207,10 +207,10 @@
 
             <!-- App version -->
             <Label
-                Text="Invoice Shelf Mobile · v1.3"
+                Text="{Binding AppVersion}"
                 Margin="0,24,0,40"
                 FontSize="12"
-                TextColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray600}}"
+                TextColor="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray200}}"
                 HorizontalTextAlignment="Center"/>
 
         </VerticalStackLayout>
