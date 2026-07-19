@@ -39,6 +39,16 @@ public partial class InvoicesViewModel : ObservableObject
     /// </summary>
     private async Task LoadAsync(bool forceRefresh)
     {
+        // Garde-fou de réentrance : RefreshView invoque son Command dès que
+        // IsRefreshing passe à true, y compris quand c'est CE code qui vient
+        // de le mettre à true (et pas un vrai geste de pull-to-refresh). Sans
+        // ce garde-fou, chaque chargement se re-déclenchait lui-même en
+        // forceRefresh:true et contournait systématiquement le cache. Les 3
+        // onglets d'InvoicesPage partagent en plus la même IsRefreshing/
+        // RefreshCommand, ce qui pouvait multiplier l'effet.
+        if (IsRefreshing)
+            return;
+
         IsRefreshing = true;
         try
         {

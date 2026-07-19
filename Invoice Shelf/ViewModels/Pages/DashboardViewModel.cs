@@ -41,6 +41,15 @@ public partial class DashboardViewModel : ObservableObject
     /// </summary>
     private async Task LoadAsync(bool forceRefresh)
     {
+        // Garde-fou de réentrance : les deux RefreshView de DashboardPage (celui
+        // de la page et celui, imbriqué, d'InvoiceListView) sont tous les deux
+        // liés à IsLoading/RefreshCommand. Dès que ce code met IsLoading à true,
+        // MAUI ré-invoque le RefreshCommand comme si l'utilisateur avait tiré
+        // pour rafraîchir, ce qui relançait un 2e chargement en forceRefresh:true
+        // et contournait systématiquement le cache. Voir aussi PaymentsViewModel.
+        if (IsLoading)
+            return;
+
         IsLoading = true;
         try
         {

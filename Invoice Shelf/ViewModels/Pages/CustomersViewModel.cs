@@ -45,6 +45,12 @@ public partial class CustomersViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
+        // Garde-fou de réentrance : RefreshView invoque son Command dès que
+        // IsRefreshing passe à true, y compris quand c'est CE code qui vient
+        // de le mettre à true (voir PaymentsViewModel pour le détail).
+        if (IsRefreshing)
+            return;
+
         IsRefreshing = true;
         try
         {

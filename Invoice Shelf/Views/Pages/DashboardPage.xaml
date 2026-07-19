@@ -124,10 +124,14 @@
                     StrokeShape="RoundRectangle 14"
                     BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                     Padding="0">
+                    <!-- IsRefreshing/RefreshCommand volontairement non liés ici : la page a déjà
+                         son propre RefreshView (voir plus haut) qui couvre tout le contenu, y
+                         compris cette liste. Les lier une 2e fois ici causait un double
+                         déclenchement de RefreshCommand à chaque chargement (MAUI invoque le
+                         Command d'un RefreshView dès que IsRefreshing passe à true, même si
+                         c'est fait par code plutôt que par un vrai geste de pull-to-refresh). -->
                     <controls:InvoiceListView
                         ItemsSource="{Binding RecentInvoices}"
-                        IsRefreshing="{Binding IsLoading}"
-                        RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenInvoiceCommand}"
                         EmptyMessage="Aucune facture récente"/>
                     <!--<CollectionView ItemsSource="{Binding RecentInvoices}">
