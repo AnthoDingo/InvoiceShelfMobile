@@ -37,6 +37,7 @@ jobs:
     name: Build & Sign Android (${{ matrix.config }})
     needs: version
     runs-on: ubuntu-latest
+    environment: build
     strategy:
       fail-fast: false
       matrix:
@@ -152,4 +153,5 @@ jobs:
           files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
