@@ -5,6 +5,7 @@
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              x:Class="InvoiceShelf.Views.Invoices.CreateInvoicePage"
              x:Name="Page"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:CreateInvoiceViewModel"
              Title="{Binding Title}">
 
@@ -24,7 +25,7 @@
             Spacing="14"
             IsVisible="{Binding IsLoading}">
             <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
-            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+            <Label Text="{loc:Translate Common_Loading}" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
         </VerticalStackLayout>
 
         <!-- Formulaire -->
@@ -40,24 +41,24 @@
 
                 <!-- Client -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Client" FontSize="12" FontAttributes="Bold"
+                    <Label Text="{loc:Translate Common_Customer}" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                     <Picker
                         ItemsSource="{Binding Customers}"
                         SelectedItem="{Binding SelectedCustomer}"
                         ItemDisplayBinding="{Binding Name}"
-                        Title="Sélectionner un client"/>
+                        Title="{loc:Translate Common_SelectCustomer}"/>
                 </VerticalStackLayout>
 
                 <!-- Dates -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
                     <VerticalStackLayout Grid.Column="0" Spacing="6">
-                        <Label Text="Date de facture" FontSize="12" FontAttributes="Bold"
+                        <Label Text="{loc:Translate Invoice_InvoiceDate}" FontSize="12" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <DatePicker Date="{Binding InvoiceDate}"/>
                     </VerticalStackLayout>
                     <VerticalStackLayout Grid.Column="1" Spacing="6">
-                        <Label Text="Date d'échéance" FontSize="12" FontAttributes="Bold"
+                        <Label Text="{loc:Translate Invoice_DueDate}" FontSize="12" FontAttributes="Bold"
                                TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                         <DatePicker Date="{Binding DueDate}"/>
                     </VerticalStackLayout>
@@ -65,25 +66,25 @@
 
                 <!-- Numéro de facture -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Numéro de facture" FontSize="12" FontAttributes="Bold"
+                    <Label Text="{loc:Translate Invoice_InvoiceNumber}" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
-                    <Entry Text="{Binding InvoiceNumber}" Placeholder="ex. INV-000012"/>
+                    <Entry Text="{Binding InvoiceNumber}" Placeholder="{loc:Translate Invoice_InvoiceNumberPlaceholder}"/>
                 </VerticalStackLayout>
 
                 <!-- Template PDF -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Template" FontSize="12" FontAttributes="Bold"
+                    <Label Text="{loc:Translate Common_Template}" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
                     <Picker
                         ItemsSource="{Binding Templates}"
                         SelectedItem="{Binding SelectedTemplate}"
                         ItemDisplayBinding="{Binding Name}"
-                        Title="Sélectionner un template"/>
+                        Title="{loc:Translate Common_SelectTemplate}"/>
                 </VerticalStackLayout>
 
                 <!-- Articles -->
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="ARTICLES" FontSize="11" FontAttributes="Bold"
+                    <Label Text="{loc:Translate Common_ItemsSectionTitle}" FontSize="11" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                            CharacterSpacing="1"/>
 
@@ -102,10 +103,10 @@
                                             ItemsSource="{Binding Source={x:Reference Page}, Path=BindingContext.CatalogItems}"
                                             SelectedItem="{Binding SelectedCatalogItem}"
                                             ItemDisplayBinding="{Binding Name}"
-                                            Title="Choisir un article existant (optionnel)"
+                                            Title="{loc:Translate Common_SelectExistingItemOptional}"
                                             FontSize="13"/>
                                         <Grid ColumnDefinitions="*,Auto">
-                                            <Entry Grid.Column="0" Text="{Binding Name}" Placeholder="Nom de l'article"/>
+                                            <Entry Grid.Column="0" Text="{Binding Name}" Placeholder="{loc:Translate Common_ItemNamePlaceholder}"/>
                                             <Button
                                                 Grid.Column="1"
                                                 Text="✕"
@@ -118,8 +119,8 @@
                                                 CommandParameter="{Binding .}"/>
                                         </Grid>
                                         <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
-                                            <Entry Grid.Column="0" Text="{Binding Quantity}" Placeholder="Qté" Keyboard="Numeric"/>
-                                            <Entry Grid.Column="1" Text="{Binding UnitPrice}" Placeholder="Prix unit." Keyboard="Numeric"/>
+                                            <Entry Grid.Column="0" Text="{Binding Quantity}" Placeholder="{loc:Translate Common_QuantityShort}" Keyboard="Numeric"/>
+                                            <Entry Grid.Column="1" Text="{Binding UnitPrice}" Placeholder="{loc:Translate Common_UnitPriceShort}" Keyboard="Numeric"/>
                                             <Label Grid.Column="2" Text="{Binding FormattedLineTotal}"
                                                    VerticalOptions="Center" HorizontalTextAlignment="End"
                                                    FontAttributes="Bold" FontSize="14"/>
@@ -131,7 +132,7 @@
                     </CollectionView>
 
                     <Button
-                        Text="+ Ajouter un article"
+                        Text="{loc:Translate Common_AddItem}"
                         BackgroundColor="Transparent"
                         TextColor="{StaticResource Primary}"
                         Command="{Binding AddItemCommand}"/>
@@ -139,7 +140,7 @@
 
                 <!-- Champs personnalisés (définis côté serveur) -->
                 <VerticalStackLayout Spacing="8" IsVisible="{Binding HasCustomFields}">
-                    <Label Text="CHAMPS PERSONNALISÉS" FontSize="11" FontAttributes="Bold"
+                    <Label Text="{loc:Translate Common_CustomFieldsSectionTitle}" FontSize="11" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                            CharacterSpacing="1"/>
 
@@ -206,14 +207,14 @@
                     Padding="16">
                     <VerticalStackLayout Spacing="8">
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Sous-total" FontSize="14"
+                            <Label Grid.Column="0" Text="{loc:Translate Common_SubTotal}" FontSize="14"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}"/>
                             <Label Grid.Column="1" Text="{Binding FormattedSubTotal}" FontSize="14" HorizontalTextAlignment="End"/>
                         </Grid>
                         <BoxView HeightRequest="1"
                                  BackgroundColor="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray700}}"/>
                         <Grid ColumnDefinitions="*,Auto">
-                            <Label Grid.Column="0" Text="Total" FontSize="17" FontAttributes="Bold"/>
+                            <Label Grid.Column="0" Text="{loc:Translate Common_Total}" FontSize="17" FontAttributes="Bold"/>
                             <Label Grid.Column="1" Text="{Binding FormattedTotal}"
                                    FontSize="17" FontAttributes="Bold"
                                    TextColor="{StaticResource Primary}" HorizontalTextAlignment="End"/>
@@ -223,14 +224,14 @@
 
                 <!-- Notes -->
                 <VerticalStackLayout Spacing="6">
-                    <Label Text="Notes" FontSize="12" FontAttributes="Bold"
+                    <Label Text="{loc:Translate Common_Notes}" FontSize="12" FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"/>
-                    <Editor Text="{Binding Notes}" Placeholder="Optionnel" HeightRequest="90" AutoSize="TextChanges"/>
+                    <Editor Text="{Binding Notes}" Placeholder="{loc:Translate Common_Optional}" HeightRequest="90" AutoSize="TextChanges"/>
                 </VerticalStackLayout>
 
                 <!-- Info statut -->
                 <Label
-                    Text="Cette facture sera enregistrée comme brouillon. Vous pourrez l'envoyer au client ensuite."
+                    Text="{loc:Translate Invoice_DraftNotice}"
                     FontSize="12" FontAttributes="Italic"
                     IsVisible="{Binding IsEditMode, Converter={StaticResource InverseBoolConverter}}"
                     TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"/>
@@ -239,7 +240,7 @@
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,0,0,0">
                     <Button
                         Grid.Column="0"
-                        Text="Annuler"
+                        Text="{loc:Translate Common_Cancel}"
                         BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray700}}"
                         TextColor="{AppThemeBinding Light={StaticResource Gray700}, Dark={StaticResource White}}"
                         Command="{Binding CancelCommand}"

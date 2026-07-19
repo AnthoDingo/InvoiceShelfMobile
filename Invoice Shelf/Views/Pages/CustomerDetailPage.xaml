@@ -5,6 +5,7 @@
              xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              x:Class="InvoiceShelf.Views.Pages.CustomerDetailPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:CustomerDetailViewModel"
              Title="{Binding Customer.Name}">
 
@@ -23,7 +24,7 @@
             VerticalOptions="Center" HorizontalOptions="Center" Spacing="14"
             IsVisible="{Binding IsLoading}">
             <ActivityIndicator IsRunning="True" Color="{StaticResource Primary}" WidthRequest="36" HeightRequest="36"/>
-            <Label Text="Chargement…" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
+            <Label Text="{loc:Translate Common_Loading}" TextColor="{StaticResource Gray400}" HorizontalOptions="Center" FontSize="14"/>
         </VerticalStackLayout>
 
         <!-- Contenu -->
@@ -84,7 +85,7 @@
                         BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                         Padding="14,12">
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="FACTURES" FontSize="10" FontAttributes="Bold"
+                            <Label Text="{loc:Translate CustomerDetail_InvoicesLabel}" FontSize="10" FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                                    CharacterSpacing="1"/>
                             <Label Text="{Binding InvoiceCount}" FontSize="26" FontAttributes="Bold" TextColor="{StaticResource Primary}"/>
@@ -99,7 +100,7 @@
                         BackgroundColor="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray900}}"
                         Padding="14,12">
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="SOLDE DÛ" FontSize="10" FontAttributes="Bold"
+                            <Label Text="{loc:Translate CustomerDetail_DueBalance}" FontSize="10" FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                                    CharacterSpacing="1"/>
                             <Label Text="{Binding FormattedDueAmount}" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource StatusOverdue}"/>
@@ -109,7 +110,7 @@
                 </Grid>
 
                 <!-- Factures du client -->
-                <Label Text="FACTURES" FontSize="11" FontAttributes="Bold"
+                <Label Text="{loc:Translate CustomerDetail_InvoicesLabel}" FontSize="11" FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                        CharacterSpacing="1"
                        Margin="20,20,0,8"/>
@@ -164,11 +165,11 @@
                     IsVisible="{Binding HasInvoices, Converter={StaticResource InverseBoolConverter}}">
                     <Label HorizontalTextAlignment="Center" FontSize="15"
                            TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
-                           Text="Aucune facture pour ce client"/>
+                           Text="{loc:Translate CustomerDetail_EmptyInvoices}"/>
                 </VerticalStackLayout>
 
                 <!-- Adresse de facturation -->
-                <Label Text="ADRESSE" FontSize="11" FontAttributes="Bold"
+                <Label Text="{loc:Translate CustomerDetail_Address}" FontSize="11" FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                        CharacterSpacing="1"
                        Margin="20,20,0,8"

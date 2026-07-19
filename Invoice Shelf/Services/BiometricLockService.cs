@@ -1,4 +1,5 @@
 using Maui.Biometric;
+using InvoiceShelf.Resources.Strings;
 
 namespace InvoiceShelf.Services;
 
@@ -103,9 +104,9 @@ public class BiometricLockService : IBiometricLockService
     {
         try
         {
-            AuthenticationRequest request = new AuthenticationRequest("Authentification requise", reason)
+            AuthenticationRequest request = new AuthenticationRequest(AppStrings.Get("Biometric_AuthRequiredTitle"), reason)
             {
-                CancelTitle = "Annuler"
+                CancelTitle = AppStrings.Get("Common_Cancel")
             };
 
             AuthenticationResult result = await _biometric.AuthenticateAsync(request);
@@ -120,7 +121,7 @@ public class BiometricLockService : IBiometricLockService
     public async Task<bool> TryEnableAsync()
     {
         bool confirmed = await AuthenticateAsync(
-            "Confirmez votre identité pour activer le verrouillage biométrique.");
+            AppStrings.Get("Biometric_ConfirmIdentityReason"));
 
         if (confirmed)
         {

@@ -1,5 +1,6 @@
 using InvoiceShelf.Constants;
 using InvoiceShelf.Models.Admin;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Models.Admin.Authentication;
 using System.Net;
 using System.Net.Http.Headers;
@@ -144,7 +145,7 @@ public class ApiService
         {
             string? token = await SecureStorage.GetAsync("token");
             if (string.IsNullOrEmpty(token))
-                throw new InvalidOperationException("Aucun token trouvé. Veuillez vous reconnecter.");
+                throw new InvalidOperationException(AppStrings.Get("Api_NoTokenFound"));
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             // InvoiceShelf multi-sociétés : header "company" requis sur les endpoints authentifiés.
@@ -185,13 +186,13 @@ public class ApiService
             }
             catch (JsonException ex)
             {
-                return new ApiResponse<T>(code, default, $"Réponse JSON invalide : {ex.Message}");
+                return new ApiResponse<T>(code, default, string.Format(AppStrings.Get("Api_InvalidJsonFormat"), ex.Message));
             }
         }
         catch (TaskCanceledException) when (cts.IsCancellationRequested)
         {
             // 408 = le timeout configuré a été atteint
-            return new ApiResponse<T>(408, default, $"Délai dépassé ({Timeout.TotalSeconds}s).");
+            return new ApiResponse<T>(408, default, string.Format(AppStrings.Get("Api_TimeoutFormat"), Timeout.TotalSeconds));
         }
         catch (HttpRequestException ex)
         {
@@ -386,7 +387,7 @@ public class ApiService
     public async Task<string?> Login(string username, string password)
     {
         if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            throw new ArgumentException("Les identifiants ne peuvent pas être vides.");
+            throw new ArgumentException(AppStrings.Get("Api_EmptyCredentials"));
 
         var body = new LoginRequest { Username = username, Password = password };
         var res  = await Send<LoginAnswer>(HttpMethod.Post, ApiUri.Login, body);
@@ -453,9 +454,9 @@ public class ApiService
     {
         ApiResponse<InvoiceDetail> res = await Send<InvoiceDetail>(HttpMethod.Post, ApiUri.AllInvoices, request, authenticated: true);
         if (!res.IsSuccess)
-            return (null, res.Error ?? $"Échec de la création de la facture (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_CreateInvoiceFailedFormat"), res.StatusCode));
         if (res.Value?.Data is null)
-            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_EmptyOrInvalidResponseFormat"), res.StatusCode));
         return (res.Value.Data, null);
     }
 
@@ -470,9 +471,9 @@ public class ApiService
     {
         ApiResponse<InvoiceDetail> res = await Send<InvoiceDetail>(HttpMethod.Put, ApiUri.Invoice(id), request, authenticated: true);
         if (!res.IsSuccess)
-            return (null, res.Error ?? $"Échec de la mise à jour de la facture (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_UpdateInvoiceFailedFormat"), res.StatusCode));
         if (res.Value?.Data is null)
-            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_EmptyOrInvalidResponseFormat"), res.StatusCode));
         return (res.Value.Data, null);
     }
 
@@ -550,9 +551,9 @@ public class ApiService
     {
         ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Post, ApiUri.AllEstimates, request, authenticated: true);
         if (!res.IsSuccess)
-            return (null, res.Error ?? $"Échec de la création du devis (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_CreateEstimateFailedFormat"), res.StatusCode));
         if (res.Value?.Data is null)
-            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_EmptyOrInvalidResponseFormat"), res.StatusCode));
         return (res.Value.Data, null);
     }
 
@@ -565,9 +566,9 @@ public class ApiService
     {
         ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Put, ApiUri.Estimate(id), request, authenticated: true);
         if (!res.IsSuccess)
-            return (null, res.Error ?? $"Échec de la mise à jour du devis (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_UpdateEstimateFailedFormat"), res.StatusCode));
         if (res.Value?.Data is null)
-            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_EmptyOrInvalidResponseFormat"), res.StatusCode));
         return (res.Value.Data, null);
     }
 
@@ -627,9 +628,9 @@ public class ApiService
     {
         ApiResponse<PaymentDetail> res = await Send<PaymentDetail>(HttpMethod.Post, ApiUri.AllPayments, request, authenticated: true);
         if (!res.IsSuccess)
-            return (null, res.Error ?? $"Échec de l'enregistrement du paiement (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_CreatePaymentFailedFormat"), res.StatusCode));
         if (res.Value?.Data is null)
-            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_EmptyOrInvalidResponseFormat"), res.StatusCode));
         return (res.Value.Data, null);
     }
 
@@ -671,9 +672,9 @@ public class ApiService
     {
         ApiResponse<ExpenseDetail> res = await Send<ExpenseDetail>(HttpMethod.Post, ApiUri.AllExpenses, request, authenticated: true);
         if (!res.IsSuccess)
-            return (null, res.Error ?? $"Échec de la création de la dépense (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_CreateExpenseFailedFormat"), res.StatusCode));
         if (res.Value?.Data is null)
-            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+            return (null, res.Error ?? string.Format(AppStrings.Get("Api_EmptyOrInvalidResponseFormat"), res.StatusCode));
         return (res.Value.Data, null);
     }
 }

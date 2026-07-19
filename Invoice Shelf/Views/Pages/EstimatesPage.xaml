@@ -5,8 +5,9 @@
              xmlns:viewmodels="clr-namespace:InvoiceShelf.ViewModels.Pages"
              xmlns:controls="clr-namespace:InvoiceShelf.Controls"
              x:Class="InvoiceShelf.Views.Pages.EstimatesPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:EstimatesViewModel"
-             Title="Devis">
+             Title="{loc:Translate Shell_Estimates}">
 
     <Grid Style="{StaticResource ResponsiveContainer}">
         <tabview:TabView
@@ -60,41 +61,41 @@
             </tabview:TabView.SelectedHeaderTemplate>
 
             <!-- Brouillons -->
-            <tabview:TabViewItem Header="Brouillons" Column="0">
+            <tabview:TabViewItem Header="{loc:Translate Estimates_TabDrafts}" Column="0">
                 <Grid x:DataType="viewmodels:EstimatesViewModel">
                     <controls:EstimateListView
                         ItemsSource="{Binding Drafts}"
                         IsRefreshing="{Binding IsRefreshing}"
                         RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenEstimateCommand}"
-                        EmptyMessage="Aucun brouillon"
-                        EmptySubMessage="Vos devis brouillons apparaîtront ici."/>
+                        EmptyMessage="{loc:Translate Estimates_EmptyDraftsTitle}"
+                        EmptySubMessage="{loc:Translate Estimates_EmptyDraftsSub}"/>
                 </Grid>
             </tabview:TabViewItem>
 
             <!-- Envoyés -->
-            <tabview:TabViewItem Header="Envoyés" Column="1">
+            <tabview:TabViewItem Header="{loc:Translate Estimates_TabSent}" Column="1">
                 <Grid x:DataType="viewmodels:EstimatesViewModel">
                     <controls:EstimateListView
                         ItemsSource="{Binding Sents}"
                         IsRefreshing="{Binding IsRefreshing}"
                         RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenEstimateCommand}"
-                        EmptyMessage="Aucun devis envoyé"
-                        EmptySubMessage="Vos devis envoyés apparaîtront ici."/>
+                        EmptyMessage="{loc:Translate Estimates_EmptySentTitle}"
+                        EmptySubMessage="{loc:Translate Estimates_EmptySentSub}"/>
                 </Grid>
             </tabview:TabViewItem>
 
             <!-- Tous -->
-            <tabview:TabViewItem Header="Tous" Column="2">
+            <tabview:TabViewItem Header="{loc:Translate Estimates_TabAll}" Column="2">
                 <Grid x:DataType="viewmodels:EstimatesViewModel">
                     <controls:EstimateListView
                         ItemsSource="{Binding Estimates}"
                         IsRefreshing="{Binding IsRefreshing}"
                         RefreshCommand="{Binding RefreshCommand}"
                         SelectionCommand="{Binding OpenEstimateCommand}"
-                        EmptyMessage="Aucun devis"
-                        EmptySubMessage="Vos devis apparaîtront ici."/>
+                        EmptyMessage="{loc:Translate Estimates_EmptyAllTitle}"
+                        EmptySubMessage="{loc:Translate Estimates_EmptyAllSub}"/>
                 </Grid>
             </tabview:TabViewItem>
 

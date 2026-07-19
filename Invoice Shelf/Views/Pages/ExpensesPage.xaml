@@ -5,8 +5,9 @@
              xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              x:Class="InvoiceShelf.Views.Pages.ExpensesPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:ExpensesViewModel"
-             Title="Dépenses">
+             Title="{loc:Translate Shell_Expenses}">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -109,12 +110,12 @@
                     HorizontalTextAlignment="Center"
                     FontSize="20"
                     FontAttributes="Bold"
-                    Text="Aucune dépense"/>
+                    Text="{loc:Translate Expenses_EmptyTitle}"/>
                 <Label
                     HorizontalTextAlignment="Center"
                     FontSize="14"
                     TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                    Text="Vos dépenses apparaîtront ici."/>
+                    Text="{loc:Translate Expenses_EmptySub}"/>
             </VerticalStackLayout>
 
         </Grid>

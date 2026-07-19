@@ -1,3 +1,5 @@
+using InvoiceShelf.Resources.Strings;
+
 namespace InvoiceShelf.Models.Admin;
 
 public record Estimates(
@@ -53,12 +55,12 @@ public record Estimate(
 
     public string FormattedStatus => Status switch
     {
-        "DRAFT"    => "Brouillon",
-        "SENT"     => "Envoyé",
-        "VIEWED"   => "Consulté",
-        "ACCEPTED" => "Accepté",
-        "REJECTED" => "Refusé",
-        "EXPIRED"  => "Expiré",
+        "DRAFT"    => AppStrings.Get("Status_Draft"),
+        "SENT"     => AppStrings.Get("Status_EstimateSent"),
+        "VIEWED"   => AppStrings.Get("Status_Viewed"),
+        "ACCEPTED" => AppStrings.Get("Status_Accepted"),
+        "REJECTED" => AppStrings.Get("Status_Rejected"),
+        "EXPIRED"  => AppStrings.Get("Status_Expired"),
         _          => Status
     };
 
