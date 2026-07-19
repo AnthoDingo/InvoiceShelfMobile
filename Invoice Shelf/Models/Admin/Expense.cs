@@ -1,3 +1,5 @@
+using InvoiceShelf.Resources.Strings;
+
 namespace InvoiceShelf.Models.Admin;
 
 public record Expenses(
@@ -27,7 +29,7 @@ public record Expense(
     [property: JsonPropertyName("currency")]              Currency?        Currency
 )
 {
-    public string CategoryName => ExpenseCategory?.Name ?? "Sans catégorie";
+    public string CategoryName => ExpenseCategory?.Name ?? AppStrings.Get("Expense_NoCategoryFallback");
 
     public string FormattedAmount
     {

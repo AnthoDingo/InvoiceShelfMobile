@@ -6,8 +6,9 @@
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              xmlns:controls="clr-namespace:InvoiceShelf.Controls"
              x:Class="InvoiceShelf.Views.Pages.DashboardPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:DashboardViewModel"
-             Title="Accueil"
+             Title="{loc:Translate Shell_Home}"
              Shell.NavBarIsVisible="False">
 
     <Shell.TitleView>
@@ -34,10 +35,10 @@
                     Padding="20,28,20,40">
                     <VerticalStackLayout Spacing="4">
                         <Label
-                            Text="{Binding GreetingName, StringFormat='Bonjour, {0} 👋'}"
+                            Text="{Binding GreetingName, StringFormat={loc:Translate Dashboard_GreetingFormat}}"
                             TextColor="White" FontSize="26" FontAttributes="Bold"/>
                         <Label
-                            Text="Voici un résumé de votre activité"
+                            Text="{loc:Translate Dashboard_Subtitle}"
                             TextColor="White" Opacity="0.75" FontSize="14"/>
                     </VerticalStackLayout>
                 </Border>
@@ -52,7 +53,7 @@
                             <Shadow Brush="{StaticResource Gray300Brush}" Offset="0,4" Radius="12" Opacity="0.18"/>
                         </Border.Shadow>
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="À ENCAISSER" FontSize="10" FontAttributes="Bold"
+                            <Label Text="{loc:Translate Dashboard_ToCollect}" FontSize="10" FontAttributes="Bold"
                                    TextColor="{StaticResource Gray400}" CharacterSpacing="1"/>
                             <Label Text="{Binding TotalDue}" FontSize="22" FontAttributes="Bold"
                                    TextColor="{StaticResource StatusOverdue}" LineBreakMode="TailTruncation"/>
@@ -66,7 +67,7 @@
                             <Shadow Brush="{StaticResource Gray300Brush}" Offset="0,4" Radius="12" Opacity="0.18"/>
                         </Border.Shadow>
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="ENCAISSÉ" FontSize="10" FontAttributes="Bold"
+                            <Label Text="{loc:Translate Dashboard_Collected}" FontSize="10" FontAttributes="Bold"
                                    TextColor="{StaticResource Gray400}" CharacterSpacing="1"/>
                             <Label Text="{Binding TotalPaid}" FontSize="22" FontAttributes="Bold"
                                    TextColor="{StaticResource StatusCompleted}" LineBreakMode="TailTruncation"/>
@@ -82,7 +83,7 @@
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="{Binding DraftCount}" FontSize="24" FontAttributes="Bold"
                                    TextColor="{StaticResource StatusDraft}" HorizontalTextAlignment="Center"/>
-                            <Label Text="Brouillons" FontSize="11"
+                            <Label Text="{loc:Translate Dashboard_Drafts}" FontSize="11"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
@@ -93,7 +94,7 @@
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="{Binding SentCount}" FontSize="24" FontAttributes="Bold"
                                    TextColor="{StaticResource StatusSent}" HorizontalTextAlignment="Center"/>
-                            <Label Text="Envoyées" FontSize="11"
+                            <Label Text="{loc:Translate Dashboard_Sent}" FontSize="11"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
@@ -104,7 +105,7 @@
                         <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
                             <Label Text="{Binding OverdueCount}" FontSize="24" FontAttributes="Bold"
                                    TextColor="{StaticResource StatusOverdue}" HorizontalTextAlignment="Center"/>
-                            <Label Text="En retard" FontSize="11"
+                            <Label Text="{loc:Translate Dashboard_Overdue}" FontSize="11"
                                    TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
                                    HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
@@ -112,7 +113,7 @@
                 </Grid>
 
                 <!-- Titre section -->
-                <Label Text="DERNIÈRES FACTURES" FontSize="11" FontAttributes="Bold"
+                <Label Text="{loc:Translate Dashboard_RecentInvoicesTitle}" FontSize="11" FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray500}}"
                        CharacterSpacing="1" Margin="20,22,0,8"/>
 
@@ -133,7 +134,7 @@
                     <controls:InvoiceListView
                         ItemsSource="{Binding RecentInvoices}"
                         SelectionCommand="{Binding OpenInvoiceCommand}"
-                        EmptyMessage="Aucune facture récente"/>
+                        EmptyMessage="{loc:Translate Dashboard_EmptyRecentInvoices}"/>
                     <!--<CollectionView ItemsSource="{Binding RecentInvoices}">
                         <CollectionView.EmptyView>
                             <Label Text="Aucune facture récente" FontSize="14" Margin="20,20"

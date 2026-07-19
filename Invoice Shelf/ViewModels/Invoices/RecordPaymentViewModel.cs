@@ -1,6 +1,7 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.Input;
 using InvoiceShelf.Models.Admin;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 
 namespace InvoiceShelf.ViewModels.Invoices;
@@ -144,7 +145,7 @@ public partial class RecordPaymentViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur de chargement : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_LoadingErrorFormat"), ex.Message);
         }
         finally
         {
@@ -174,7 +175,7 @@ public partial class RecordPaymentViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur de chargement : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_LoadingErrorFormat"), ex.Message);
         }
         finally
         {
@@ -193,7 +194,7 @@ public partial class RecordPaymentViewModel : ObservableObject
         int? customerId = Invoice?.CustomerId ?? SelectedCustomer?.Id;
         if (customerId is null)
         {
-            ErrorMessage = "Sélectionnez un client.";
+            ErrorMessage = AppStrings.Get("Common_SelectCustomerRequired");
             return;
         }
 
@@ -202,13 +203,13 @@ public partial class RecordPaymentViewModel : ObservableObject
         if (!decimal.TryParse(normalizedAmount, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal amountValue)
             || amountValue <= 0)
         {
-            ErrorMessage = "Montant invalide.";
+            ErrorMessage = AppStrings.Get("Common_InvalidAmount");
             return;
         }
 
         if (string.IsNullOrWhiteSpace(PaymentNumber))
         {
-            ErrorMessage = "Le numéro de paiement est requis.";
+            ErrorMessage = AppStrings.Get("RecordPayment_NumberRequired");
             return;
         }
 
@@ -231,7 +232,7 @@ public partial class RecordPaymentViewModel : ObservableObject
 
             if (payment is null)
             {
-                ErrorMessage = error ?? "Échec de l'enregistrement du paiement.";
+                ErrorMessage = error ?? AppStrings.Get("RecordPayment_CreateFailedFallback");
                 return;
             }
 
@@ -242,7 +243,7 @@ public partial class RecordPaymentViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Erreur réseau : {ex.Message}";
+            ErrorMessage = string.Format(AppStrings.Get("Common_NetworkErrorFormat"), ex.Message);
         }
         finally
         {

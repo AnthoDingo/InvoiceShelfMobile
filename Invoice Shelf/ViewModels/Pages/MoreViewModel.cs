@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using InvoiceShelf.Models.Admin;
+using InvoiceShelf.Resources.Strings;
 using InvoiceShelf.Services;
 using InvoiceShelf.Views.Auth;
 
@@ -72,20 +73,20 @@ namespace InvoiceShelf.ViewModels.Pages
             const double mb = kb * 1024;
 
             if (bytes >= mb)
-                return $"{bytes / mb:0.0} Mo";
+                return $"{bytes / mb:0.0} {AppStrings.Get("Common_MegabytesUnit")}";
             if (bytes >= kb)
-                return $"{bytes / kb:0.0} Ko";
-            return $"{bytes} o";
+                return $"{bytes / kb:0.0} {AppStrings.Get("Common_KilobytesUnit")}";
+            return $"{bytes} {AppStrings.Get("Common_BytesUnit")}";
         }
 
         [RelayCommand]
         private async Task ClearCache()
         {
             bool confirm = await Shell.Current.DisplayAlertAsync(
-                "Vider le cache",
-                "Les données mises en cache (factures, devis, clients, etc.) seront rechargées depuis le serveur au prochain affichage.",
-                "Vider",
-                "Annuler");
+                AppStrings.Get("More_ClearCache"),
+                AppStrings.Get("More_ClearCacheConfirmMessage"),
+                AppStrings.Get("Common_Clear"),
+                AppStrings.Get("Common_Cancel"));
 
             if (!confirm) return;
 
@@ -133,8 +134,8 @@ namespace InvoiceShelf.ViewModels.Pages
                     _suppressBiometricToggleHandling = false;
 
                     await Shell.Current.DisplayAlertAsync(
-                        "Verrouillage biométrique",
-                        "L'authentification n'a pas pu être confirmée. Le verrouillage n'a pas été activé.",
+                        AppStrings.Get("More_BiometricLock"),
+                        AppStrings.Get("More_BiometricConfirmFailedMessage"),
                         "OK");
                 }
             }
@@ -166,10 +167,10 @@ namespace InvoiceShelf.ViewModels.Pages
         private async Task Logout()
         {
             bool confirm = await Shell.Current.DisplayAlertAsync(
-                "Déconnexion",
-                "Voulez-vous vraiment vous déconnecter ?",
-                "Déconnexion",
-                "Annuler");
+                AppStrings.Get("More_Logout"),
+                AppStrings.Get("More_LogoutConfirmMessage"),
+                AppStrings.Get("More_Logout"),
+                AppStrings.Get("Common_Cancel"));
 
             if (!confirm) return;
 
@@ -196,10 +197,10 @@ namespace InvoiceShelf.ViewModels.Pages
         private async Task ChangeServer()
         {
             bool confirm = await Shell.Current.DisplayAlertAsync(
-                "Changer de serveur",
-                "Cela vous déconnectera et effacera les informations de connexion actuelles.",
-                "Continuer",
-                "Annuler");
+                AppStrings.Get("Credential_ChangeServer"),
+                AppStrings.Get("More_ChangeServerConfirmMessage"),
+                AppStrings.Get("Endpoint_Continue"),
+                AppStrings.Get("Common_Cancel"));
 
             if (!confirm) return;
 

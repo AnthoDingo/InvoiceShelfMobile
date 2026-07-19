@@ -1,3 +1,5 @@
+using InvoiceShelf.Resources.Strings;
+
 namespace InvoiceShelf.Models.Admin;
 
 public record Invoices(
@@ -74,11 +76,11 @@ public record Invoice(
 
     public string FormattedStatus => Status switch
     {
-        _ when IsOverdue => "En retard",
-        "DRAFT"          => "Brouillon",
-        "SENT"           => "Envoyée",
-        "COMPLETED"      => "Réglée",
-        "OVERDUE"        => "En retard",
+        _ when IsOverdue => AppStrings.Get("Status_Overdue"),
+        "DRAFT"          => AppStrings.Get("Status_Draft"),
+        "SENT"           => AppStrings.Get("Status_InvoiceSent"),
+        "COMPLETED"      => AppStrings.Get("Status_Completed"),
+        "OVERDUE"        => AppStrings.Get("Status_Overdue"),
         _                => Status
     };
 
@@ -163,9 +165,9 @@ public record Invoice(
             int daysRemaining = (dueDate.Date - DateTime.Today).Days;
             return daysRemaining switch
             {
-                > 0  => $"J-{daysRemaining}",
-                0    => "Échéance aujourd'hui",
-                _    => $"Retard de {Math.Abs(daysRemaining)} j"
+                > 0  => string.Format(AppStrings.Get("Invoice_DaysRemainingFormat"), daysRemaining),
+                0    => AppStrings.Get("Invoice_DueTodayLabel"),
+                _    => string.Format(AppStrings.Get("Invoice_OverdueDaysFormat"), Math.Abs(daysRemaining))
             };
         }
     }

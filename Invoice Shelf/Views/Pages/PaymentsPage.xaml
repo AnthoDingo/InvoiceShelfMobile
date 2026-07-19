@@ -5,8 +5,9 @@
              xmlns:models="clr-namespace:InvoiceShelf.Models.Admin"
              xmlns:helpers="clr-namespace:InvoiceShelf.Helpers"
              x:Class="InvoiceShelf.Views.Pages.PaymentsPage"
+             xmlns:loc="clr-namespace:InvoiceShelf.Localization"
              x:DataType="viewmodels:PaymentsViewModel"
-             Title="Paiements">
+             Title="{loc:Translate Shell_Payments}">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -90,12 +91,12 @@
                     HorizontalTextAlignment="Center"
                     FontSize="20"
                     FontAttributes="Bold"
-                    Text="Aucun paiement"/>
+                    Text="{loc:Translate Payments_EmptyTitle}"/>
                 <Label
                     HorizontalTextAlignment="Center"
                     FontSize="14"
                     TextColor="{AppThemeBinding Light={StaticResource Gray500}, Dark={StaticResource Gray400}}"
-                    Text="Les paiements reçus apparaîtront ici."/>
+                    Text="{loc:Translate Payments_EmptySub}"/>
             </VerticalStackLayout>
 
         </Grid>
