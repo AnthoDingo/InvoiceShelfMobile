@@ -10,7 +10,7 @@
     <ApplicationTitle>Invoice Shelf</ApplicationTitle>
     <ApplicationId>ovh.janus.invoiceshelf</ApplicationId>
     <ApplicationDisplayVersion>1.4.0</ApplicationDisplayVersion>
-    <ApplicationVersion>1400</ApplicationVersion>
+    <ApplicationVersion>1401</ApplicationVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">16.0</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">35.0</SupportedOSPlatformVersion>
