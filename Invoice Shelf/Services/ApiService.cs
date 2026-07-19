@@ -239,19 +239,25 @@ public class ApiService
         pageData[1] = first.Value.Data;
         bool allPagesOk = true;
 
+        Console.WriteLine($"[ApiCache] {path} : {lastPage} page(s) à récupérer (1 déjà lue, {lastPage - 1} en parallèle, max 5 concurrentes).");
+
         using SemaphoreSlim throttle = new SemaphoreSlim(5);
 
         IEnumerable<Task> tasks = Enumerable.Range(2, lastPage - 1).Select(async page =>
         {
             await throttle.WaitAsync();
+            System.Diagnostics.Stopwatch pageSw = System.Diagnostics.Stopwatch.StartNew();
             try
             {
                 ApiResponse<TResponse> res = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page={page}", authenticated: true);
+                pageSw.Stop();
                 if (!res.IsSuccess || res.Value is null)
                 {
+                    Console.WriteLine($"[ApiCache]   page {page} ÉCHEC en {pageSw.ElapsedMilliseconds} ms (HTTP {res.StatusCode} : {res.Error}).");
                     allPagesOk = false;
                     return;
                 }
+                Console.WriteLine($"[ApiCache]   page {page} OK en {pageSw.ElapsedMilliseconds} ms ({res.Value.Data.Count} élément(s)).");
                 pageData[page] = res.Value.Data;
             }
             finally
