@@ -79,19 +79,50 @@
                             </VerticalStackLayout>
                         </Grid>
 
-                        <!-- Solde dû (si > 0) -->
-                        <Border
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 8"
-                            BackgroundColor="White"
-                            Opacity="0.15"
-                            Padding="12,8"
-                            IsVisible="{Binding Invoice.DueAmount, Converter={StaticResource IsNotNullConverter}}">
+                        <!-- Progression jusqu'à l'échéance : verte de 0 à 33%,
+                             orange de 33 à 66%, rouge de 66 à 100% du temps
+                             écoulé entre la date de facture et la date
+                             d'échéance. -->
+                        <VerticalStackLayout
+                            Spacing="6"
+                            Margin="0,4,0,0"
+                            IsVisible="{Binding Invoice.ShowDueProgress}">
                             <Grid ColumnDefinitions="*,Auto">
-                                <Label Grid.Column="0" Text="Solde dû" TextColor="White" FontSize="13"/>
-                                <Label Grid.Column="1" Text="{Binding Invoice.FormattedDueAmount}" TextColor="White" FontAttributes="Bold" FontSize="13"/>
+                                <Label
+                                    Grid.Column="0"
+                                    Text="{Binding Invoice.FormattedDueAmount, StringFormat='Solde dû : {0}'}"
+                                    TextColor="White"
+                                    Opacity="0.75"
+                                    FontSize="12"
+                                    IsVisible="{Binding Invoice.HasDueAmount}"/>
+                                <Label
+                                    Grid.Column="1"
+                                    Text="{Binding Invoice.DueProgressLabel}"
+                                    TextColor="White"
+                                    Opacity="0.85"
+                                    FontAttributes="Bold"
+                                    FontSize="12"/>
                             </Grid>
-                        </Border>
+                            <ProgressBar
+                                Progress="{Binding Invoice.DueProgress}"
+                                ProgressColor="{Binding Invoice.DueProgressColor}"
+                                BackgroundColor="#33FFFFFF"
+                                HeightRequest="8"/>
+                        </VerticalStackLayout>
+
+                        <!-- Enregistrer un paiement (facture envoyée ou en retard) :
+                             ouvre RecordPaymentPage avec cette facture pré-remplie. -->
+                        <Button
+                            Text="Enregistrer un paiement"
+                            FontSize="14"
+                            FontAttributes="Bold"
+                            BackgroundColor="White"
+                            TextColor="{StaticResource Primary}"
+                            CornerRadius="10"
+                            HeightRequest="44"
+                            Margin="0,6,0,0"
+                            Command="{Binding RecordPaymentCommand}"
+                            IsVisible="{Binding CanRecordPayment}"/>
 
                     </VerticalStackLayout>
                 </Border>
@@ -202,13 +233,13 @@
                 </Border>
 
                 <!-- Enregistrer un paiement (visible si solde dû > 0) -->
-                <Button
+                <!--<Button
                     Margin="16,12,16,0"
                     Text="Enregistrer un paiement"
                     BackgroundColor="{StaticResource Primary}"
                     TextColor="White"
                     Command="{Binding RecordPaymentCommand}"
-                    IsVisible="{Binding CanRecordPayment}"/>
+                    IsVisible="{Binding CanRecordPayment}"/>-->
 
                 <!-- Modifier (visible uniquement sur une facture en brouillon) -->
                 <Button

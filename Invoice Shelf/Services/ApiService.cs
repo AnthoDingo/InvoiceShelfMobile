@@ -29,8 +29,15 @@ public class ApiService
 
     private readonly HttpClient _http;
 
-    public ApiService()
+    // ── Cache disque centralisé ────────────────────────────────────────────
+    // Tous les résultats de requêtes GET sont mis en cache ici (voir GetCached
+    // et GetAllPagesCached) ; toute mutation réussie invalide l'ensemble.
+    private readonly ICacheService _cache;
+
+    public ApiService(ICacheService cacheService)
     {
+        _cache = cacheService;
+
         var handler = new SocketsHttpHandler
         {
             ConnectTimeout            = TimeSpan.FromSeconds(10),
@@ -162,6 +169,12 @@ public class ApiService
             if (!response.IsSuccessStatusCode)
                 return new ApiResponse<T>(code, default, content);
 
+            // Toute mutation réussie (POST/PUT/DELETE...) rend le cache GET
+            // potentiellement obsolète : on invalide tout le cache disque pour
+            // garantir la cohérence des listes et fiches au prochain affichage.
+            if (method != HttpMethod.Get)
+                await _cache.ClearAllAsync();
+
             if (string.IsNullOrWhiteSpace(content))
                 return new ApiResponse<T>(code, default, null);
 
@@ -198,30 +211,156 @@ public class ApiService
     /// Si la réponse ne contient pas de "meta" (endpoint non paginé), une seule
     /// page est lue, comme avant.
     /// </summary>
-    private async Task<List<TItem>> GetAllPages<TResponse, TItem>(string path)
+    private async Task<(List<TItem> Items, bool Complete)> GetAllPages<TResponse, TItem>(string path)
         where TResponse : IPaginatedResponse<TItem>
     {
-        var results = new List<TItem>();
         char separator = path.Contains('?') ? '&' : '?';
 
-        // Garde-fou : évite une boucle infinie si le serveur renvoie un "meta"
-        // incohérent (last_page qui n'augmente jamais, par exemple).
+        // Garde-fou : évite de tirer un nombre déraisonnable de pages en parallèle
+        // si le serveur renvoie un "meta" incohérent (last_page qui explose, etc.).
         const int maxPages = 200;
 
-        for (int page = 1; page <= maxPages; page++)
+        // Première page : sert aussi à connaître le nombre total de pages via meta.last_page.
+        ApiResponse<TResponse> first = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page=1", authenticated: true);
+        if (!first.IsSuccess || first.Value is null)
+            return (new List<TItem>(), false); // Échec réseau/HTTP : liste incomplète.
+
+        PaginationMeta? meta = first.Value.Meta;
+        if (meta is null || meta.CurrentPage >= meta.LastPage)
+            return (new List<TItem>(first.Value.Data), true);
+
+        int lastPage = Math.Min(meta.LastPage, maxPages);
+        bool truncatedByGuard = lastPage < meta.LastPage;
+
+        // Pages restantes récupérées en parallèle (limitées à 5 requêtes concurrentes)
+        // au lieu d'une boucle séquentielle : sur un gros volume (des dizaines de
+        // pages), ça faisait plusieurs dizaines de secondes de chargement.
+        List<TItem>?[] pageData = new List<TItem>?[lastPage + 1];
+        pageData[1] = first.Value.Data;
+        bool allPagesOk = true;
+
+        Console.WriteLine($"[ApiCache] {path} : {lastPage} page(s) à récupérer (1 déjà lue, {lastPage - 1} en parallèle, max 5 concurrentes).");
+
+        using SemaphoreSlim throttle = new SemaphoreSlim(5);
+
+        IEnumerable<Task> tasks = Enumerable.Range(2, lastPage - 1).Select(async page =>
         {
-            var res = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page={page}", authenticated: true);
-            if (!res.IsSuccess || res.Value is null)
-                break;
+            await throttle.WaitAsync();
+            System.Diagnostics.Stopwatch pageSw = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                ApiResponse<TResponse> res = await Send<TResponse>(HttpMethod.Get, $"{path}{separator}page={page}", authenticated: true);
+                pageSw.Stop();
+                if (!res.IsSuccess || res.Value is null)
+                {
+                    Console.WriteLine($"[ApiCache]   page {page} ÉCHEC en {pageSw.ElapsedMilliseconds} ms (HTTP {res.StatusCode} : {res.Error}).");
+                    allPagesOk = false;
+                    return;
+                }
+                Console.WriteLine($"[ApiCache]   page {page} OK en {pageSw.ElapsedMilliseconds} ms ({res.Value.Data.Count} élément(s)).");
+                pageData[page] = res.Value.Data;
+            }
+            finally
+            {
+                throttle.Release();
+            }
+        });
 
-            results.AddRange(res.Value.Data);
+        await Task.WhenAll(tasks);
 
-            var meta = res.Value.Meta;
-            if (meta is null || meta.CurrentPage >= meta.LastPage)
-                break;
+        List<TItem> results = new List<TItem>();
+        for (int page = 1; page <= lastPage; page++)
+        {
+            if (pageData[page] is null)
+            {
+                allPagesOk = false;
+                continue;
+            }
+            results.AddRange(pageData[page]!);
         }
 
-        return results;
+        return (results, allPagesOk && !truncatedByGuard);
+    }
+
+    // ── Cache des requêtes GET ──────────────────────────────────────────────
+
+    /// <summary>Clé de cache dérivée du chemin de la requête GET (unique par endpoint).</summary>
+    private static string GetCacheKey(string path) => $"get{path}";
+
+    /// <summary>
+    /// Lecture GET avec mise en cache disque systématique du résultat :
+    /// - cache frais et forceRefresh=false → renvoyé sans appel réseau ;
+    /// - sinon appel réseau, résultat écrit en cache si succès ;
+    /// - en cas d'échec réseau, repli sur la dernière valeur connue, même périmée.
+    /// </summary>
+    private async Task<T?> GetCached<T>(string path, Func<Task<T?>> fetch, bool forceRefresh) where T : class
+    {
+        string key = GetCacheKey(path);
+
+        if (!forceRefresh)
+        {
+            CacheResult<T> cached = await _cache.GetAsync<T>(key);
+            if (cached.IsFresh && cached.Value is not null)
+            {
+                Console.WriteLine($"[ApiCache] HIT  {key}");
+                return cached.Value;
+            }
+
+            Console.WriteLine($"[ApiCache] MISS {key} (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) → réseau.");
+        }
+        else
+        {
+            Console.WriteLine($"[ApiCache] SKIP {key} (forceRefresh) → réseau.");
+        }
+
+        T? value = await fetch();
+        if (value is not null)
+        {
+            await _cache.SetAsync(key, value);
+            return value;
+        }
+
+        CacheResult<T> stale = await _cache.GetAsync<T>(key);
+        return stale.CanServeStale ? stale.Value : null;
+    }
+
+    /// <summary>Variante de <see cref="GetCached{T}"/> pour les listes paginées.</summary>
+    private async Task<List<TItem>> GetAllPagesCached<TResponse, TItem>(string path, bool forceRefresh)
+        where TResponse : IPaginatedResponse<TItem>
+    {
+        string key = GetCacheKey(path);
+
+        if (!forceRefresh)
+        {
+            CacheResult<List<TItem>> cached = await _cache.GetAsync<List<TItem>>(key);
+            if (cached.IsFresh && cached.Value is not null)
+            {
+                Console.WriteLine($"[ApiCache] HIT  {key} ({cached.Value.Count} élément(s), écrit le {cached.CachedAt}).");
+                return cached.Value;
+            }
+
+            Console.WriteLine($"[ApiCache] MISS {key} (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) → réseau paginé.");
+        }
+        else
+        {
+            Console.WriteLine($"[ApiCache] SKIP {key} (forceRefresh) → réseau paginé.");
+        }
+
+        System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+        (List<TItem> items, bool complete) = await GetAllPages<TResponse, TItem>(path);
+        sw.Stop();
+        Console.WriteLine($"[ApiCache] Réseau paginé {key} : {items.Count} élément(s), complete={complete}, {sw.ElapsedMilliseconds} ms.");
+
+        if (complete)
+        {
+            await _cache.SetAsync(key, items);
+            return items;
+        }
+
+        // Liste incomplète (échec réseau en cours de pagination) : on préfère
+        // la dernière liste complète connue, même périmée, si elle existe.
+        CacheResult<List<TItem>> stale = await _cache.GetAsync<List<TItem>>(key);
+        return stale.CanServeStale && stale.Value is not null ? stale.Value : items;
     }
 
     // ── Test de connexion (diagnostic) ─────────────────────────────────────
@@ -268,30 +407,32 @@ public class ApiService
         catch { return false; }
     }
 
-    public async Task<UserProfile?> GetMe()
-    {
-        try
+    public async Task<UserProfile?> GetMe(bool forceRefresh = false)
+        => await GetCached<UserProfile>(ApiUri.Me, async () =>
         {
-            var res = await Send<UserProfileResponse>(HttpMethod.Get, ApiUri.Me, authenticated: true);
-            return res.IsSuccess ? res.Value?.Data : null;
-        }
-        catch { return null; }
-    }
+            try
+            {
+                ApiResponse<UserProfileResponse> res = await Send<UserProfileResponse>(HttpMethod.Get, ApiUri.Me, authenticated: true);
+                return res.IsSuccess ? res.Value?.Data : null;
+            }
+            catch { return null; }
+        }, forceRefresh);
 
     // ── Factures ─────────────────────────────────────────────────────────────
 
-    public async Task<List<Invoice>> GetInvoices()
-        => await GetAllPages<Invoices, Invoice>(ApiUri.AllInvoices);
+    public async Task<List<Invoice>> GetInvoices(bool forceRefresh = false)
+        => await GetAllPagesCached<Invoices, Invoice>(ApiUri.AllInvoices, forceRefresh);
 
-    public async Task<Invoice?> GetInvoice(int id)
-    {
-        try
+    public async Task<Invoice?> GetInvoice(int id, bool forceRefresh = false)
+        => await GetCached<Invoice>(ApiUri.Invoice(id), async () =>
         {
-            var res = await Send<InvoiceDetail>(HttpMethod.Get, ApiUri.Invoice(id), authenticated: true);
-            return res.IsSuccess ? res.Value?.Data : null;
-        }
-        catch { return null; }
-    }
+            try
+            {
+                ApiResponse<InvoiceDetail> res = await Send<InvoiceDetail>(HttpMethod.Get, ApiUri.Invoice(id), authenticated: true);
+                return res.IsSuccess ? res.Value?.Data : null;
+            }
+            catch { return null; }
+        }, forceRefresh);
 
     /// <summary>Récupère le prochain numéro de facture auto-généré par le serveur (ex. "INV-000012").</summary>
     public async Task<string?> GetNextInvoiceNumber()
@@ -338,21 +479,22 @@ public class ApiService
     // ── Catalogue d'articles ────────────────────────────────────────────────
 
     /// <summary>Liste les articles du catalogue de la société (pour pré-remplir une ligne de facture).</summary>
-    public async Task<List<CatalogItem>> GetCatalogItems()
-        => await GetAllPages<CatalogItems, CatalogItem>(ApiUri.AllItems);
+    public async Task<List<CatalogItem>> GetCatalogItems(bool forceRefresh = false)
+        => await GetAllPagesCached<CatalogItems, CatalogItem>(ApiUri.AllItems, forceRefresh);
 
     // ── Templates PDF ────────────────────────────────────────────────────────
 
     /// <summary>Liste les templates PDF disponibles pour les factures (natifs et personnalisés).</summary>
-    public async Task<List<InvoiceTemplate>> GetInvoiceTemplates()
-    {
-        try
+    public async Task<List<InvoiceTemplate>> GetInvoiceTemplates(bool forceRefresh = false)
+        => await GetCached<List<InvoiceTemplate>>(ApiUri.InvoiceTemplates, async () =>
         {
-            var res = await Send<InvoiceTemplatesResponse>(HttpMethod.Get, ApiUri.InvoiceTemplates, authenticated: true);
-            return res.IsSuccess ? res.Value?.InvoiceTemplates ?? [] : [];
-        }
-        catch { return []; }
-    }
+            try
+            {
+                ApiResponse<InvoiceTemplatesResponse> res = await Send<InvoiceTemplatesResponse>(HttpMethod.Get, ApiUri.InvoiceTemplates, authenticated: true);
+                return res.IsSuccess ? res.Value?.InvoiceTemplates : null;
+            }
+            catch { return null; }
+        }, forceRefresh) ?? [];
 
     // ── Champs personnalisés ─────────────────────────────────────────────────
 
@@ -362,30 +504,32 @@ public class ApiService
     /// l'administrateur dans InvoiceShelf (Réglages > Champs personnalisés) ;
     /// l'app ne fait qu'afficher/collecter les valeurs à l'endroit approprié.
     /// </summary>
-    public async Task<List<CustomField>> GetCustomFields(string modelType)
-    {
-        try
+    public async Task<List<CustomField>> GetCustomFields(string modelType, bool forceRefresh = false)
+        => await GetCached<List<CustomField>>(ApiUri.CustomFields(modelType), async () =>
         {
-            var res = await Send<CustomFieldsResponse>(HttpMethod.Get, ApiUri.CustomFields(modelType), authenticated: true);
-            return res.IsSuccess ? res.Value?.Data ?? [] : [];
-        }
-        catch { return []; }
-    }
+            try
+            {
+                ApiResponse<CustomFieldsResponse> res = await Send<CustomFieldsResponse>(HttpMethod.Get, ApiUri.CustomFields(modelType), authenticated: true);
+                return res.IsSuccess ? res.Value?.Data : null;
+            }
+            catch { return null; }
+        }, forceRefresh) ?? [];
 
     // ── Devis (Estimates) ──────────────────────────────────────────────────────
 
-    public async Task<List<Estimate>> GetEstimates()
-        => await GetAllPages<Estimates, Estimate>(ApiUri.AllEstimates);
+    public async Task<List<Estimate>> GetEstimates(bool forceRefresh = false)
+        => await GetAllPagesCached<Estimates, Estimate>(ApiUri.AllEstimates, forceRefresh);
 
-    public async Task<Estimate?> GetEstimate(int id)
-    {
-        try
+    public async Task<Estimate?> GetEstimate(int id, bool forceRefresh = false)
+        => await GetCached<Estimate>(ApiUri.Estimate(id), async () =>
         {
-            var res = await Send<EstimateDetail>(HttpMethod.Get, ApiUri.Estimate(id), authenticated: true);
-            return res.IsSuccess ? res.Value?.Data : null;
-        }
-        catch { return null; }
-    }
+            try
+            {
+                ApiResponse<EstimateDetail> res = await Send<EstimateDetail>(HttpMethod.Get, ApiUri.Estimate(id), authenticated: true);
+                return res.IsSuccess ? res.Value?.Data : null;
+            }
+            catch { return null; }
+        }, forceRefresh);
 
     /// <summary>Récupère le prochain numéro de devis auto-généré par le serveur (ex. "EST-000012").</summary>
     public async Task<string?> GetNextEstimateNumber()
@@ -428,39 +572,41 @@ public class ApiService
     }
 
     /// <summary>Liste les templates PDF disponibles pour les devis (natifs et personnalisés).</summary>
-    public async Task<List<EstimateTemplate>> GetEstimateTemplates()
-    {
-        try
+    public async Task<List<EstimateTemplate>> GetEstimateTemplates(bool forceRefresh = false)
+        => await GetCached<List<EstimateTemplate>>(ApiUri.EstimateTemplates, async () =>
         {
-            ApiResponse<EstimateTemplatesResponse> res = await Send<EstimateTemplatesResponse>(HttpMethod.Get, ApiUri.EstimateTemplates, authenticated: true);
-            return res.IsSuccess ? res.Value?.EstimateTemplates ?? [] : [];
-        }
-        catch { return []; }
-    }
+            try
+            {
+                ApiResponse<EstimateTemplatesResponse> res = await Send<EstimateTemplatesResponse>(HttpMethod.Get, ApiUri.EstimateTemplates, authenticated: true);
+                return res.IsSuccess ? res.Value?.EstimateTemplates : null;
+            }
+            catch { return null; }
+        }, forceRefresh) ?? [];
 
     // ── Clients ──────────────────────────────────────────────────────────────
 
-    public async Task<List<Customer>> GetCustomers()
-        => await GetAllPages<Customers, Customer>(ApiUri.AllCustomers);
+    public async Task<List<Customer>> GetCustomers(bool forceRefresh = false)
+        => await GetAllPagesCached<Customers, Customer>(ApiUri.AllCustomers, forceRefresh);
 
-    public async Task<Customer?> GetCustomer(int id)
-    {
-        try
+    public async Task<Customer?> GetCustomer(int id, bool forceRefresh = false)
+        => await GetCached<Customer>(ApiUri.Customer(id), async () =>
         {
-            var res = await Send<CustomerDetail>(HttpMethod.Get, ApiUri.Customer(id), authenticated: true);
-            return res.IsSuccess ? res.Value?.Data : null;
-        }
-        catch { return null; }
-    }
+            try
+            {
+                ApiResponse<CustomerDetail> res = await Send<CustomerDetail>(HttpMethod.Get, ApiUri.Customer(id), authenticated: true);
+                return res.IsSuccess ? res.Value?.Data : null;
+            }
+            catch { return null; }
+        }, forceRefresh);
 
     // ── Paiements ─────────────────────────────────────────────────────────────
 
-    public async Task<List<Payment>> GetPayments()
-        => await GetAllPages<Payments, Payment>(ApiUri.AllPayments);
+    public async Task<List<Payment>> GetPayments(bool forceRefresh = false)
+        => await GetAllPagesCached<Payments, Payment>(ApiUri.AllPayments, forceRefresh);
 
     /// <summary>Liste les modes de paiement configurés sur la société (ex. "Espèces", "Virement"...).</summary>
-    public async Task<List<PaymentMethod>> GetPaymentMethods()
-        => await GetAllPages<PaymentMethods, PaymentMethod>(ApiUri.AllPaymentMethods);
+    public async Task<List<PaymentMethod>> GetPaymentMethods(bool forceRefresh = false)
+        => await GetAllPagesCached<PaymentMethods, PaymentMethod>(ApiUri.AllPaymentMethods, forceRefresh);
 
     /// <summary>Récupère le prochain numéro de paiement auto-généré par le serveur (ex. "PAY-000012").</summary>
     public async Task<string?> GetNextPaymentNumber()
@@ -489,6 +635,45 @@ public class ApiService
 
     // ── Dépenses ──────────────────────────────────────────────────────────────
 
-    public async Task<List<Expense>> GetExpenses()
-        => await GetAllPages<Expenses, Expense>(ApiUri.AllExpenses);
+    public async Task<List<Expense>> GetExpenses(bool forceRefresh = false)
+        => await GetAllPagesCached<Expenses, Expense>(ApiUri.AllExpenses, forceRefresh);
+
+    /// <summary>Liste les catégories de dépenses configurées sur la société.</summary>
+    public async Task<List<ExpenseCategory>> GetExpenseCategories(bool forceRefresh = false)
+        => await GetAllPagesCached<ExpenseCategories, ExpenseCategory>(ApiUri.AllExpenseCategories, forceRefresh);
+
+    /// <summary>
+    /// Identifiant de la devise de la société (réglage "currency"), requis par
+    /// l'API pour créer une dépense. Retourne null si indisponible.
+    /// </summary>
+    public async Task<int?> GetCompanyCurrencyId(bool forceRefresh = false)
+    {
+        CompanyCurrencySetting? setting = await GetCached<CompanyCurrencySetting>(ApiUri.CompanySettings("currency"), async () =>
+        {
+            try
+            {
+                ApiResponse<CompanyCurrencySetting> res = await Send<CompanyCurrencySetting>(HttpMethod.Get, ApiUri.CompanySettings("currency"), authenticated: true);
+                return res.IsSuccess && !string.IsNullOrWhiteSpace(res.Value?.Currency) ? res.Value : null;
+            }
+            catch { return null; }
+        }, forceRefresh);
+
+        if (setting is null || string.IsNullOrWhiteSpace(setting.Currency))
+            return null;
+        return int.TryParse(setting.Currency, out int currencyId) ? currencyId : null;
+    }
+
+    /// <summary>
+    /// Crée une nouvelle dépense. Retourne la dépense créée si succès,
+    /// ou (null, message d'erreur) sinon.
+    /// </summary>
+    public async Task<(Expense? Expense, string? Error)> CreateExpense(CreateExpenseRequest request)
+    {
+        ApiResponse<ExpenseDetail> res = await Send<ExpenseDetail>(HttpMethod.Post, ApiUri.AllExpenses, request, authenticated: true);
+        if (!res.IsSuccess)
+            return (null, res.Error ?? $"Échec de la création de la dépense (HTTP {res.StatusCode}).");
+        if (res.Value?.Data is null)
+            return (null, res.Error ?? $"Réponse vide ou invalide du serveur (HTTP {res.StatusCode}).");
+        return (res.Value.Data, null);
+    }
 }

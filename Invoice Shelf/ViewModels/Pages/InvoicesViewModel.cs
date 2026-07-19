@@ -7,12 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class InvoicesViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
 
-    public InvoicesViewModel(ApiService apiService, ICacheService cacheService)
+    public InvoicesViewModel(ApiService apiService)
     {
         _apiService   = apiService   ?? throw new ArgumentNullException(nameof(apiService));
-        _cacheService = cacheService ?? throw new ArgumentNullException(nameof(cacheService));
     }
 
     // Au chargement de la page : on sert le cache s'il est encore valide (< 7 jours),
@@ -41,22 +39,23 @@ public partial class InvoicesViewModel : ObservableObject
     /// </summary>
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cached = await _cacheService.GetAsync<List<Invoice>>(CacheKeys.Invoices);
-            if (cached.IsFresh && cached.Value is not null)
-            {
-                Invoices = cached.Value;
-                return;
-            }
-        }
+        // Garde-fou de réentrance : RefreshView invoque son Command dès que
+        // IsRefreshing passe à true, y compris quand c'est CE code qui vient
+        // de le mettre à true (et pas un vrai geste de pull-to-refresh). Sans
+        // ce garde-fou, chaque chargement se re-déclenchait lui-même en
+        // forceRefresh:true et contournait systématiquement le cache. Les 3
+        // onglets d'InvoicesPage partagent en plus la même IsRefreshing/
+        // RefreshCommand, ce qui pouvait multiplier l'effet.
+        if (IsRefreshing)
+            return;
 
         IsRefreshing = true;
         try
         {
-            var data = await _apiService.GetInvoices();
+            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+            // centralisée par ApiService : forceRefresh contourne le cache frais.
+            List<Invoice> data = await _apiService.GetInvoices(forceRefresh);
             Invoices = data;
-            await _cacheService.SetAsync(CacheKeys.Invoices, data);
         }
         catch (Exception ex) { Console.WriteLine($"Erreur chargement factures : {ex.Message}"); }
         finally { IsRefreshing = false; }

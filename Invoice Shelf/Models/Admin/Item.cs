@@ -23,7 +23,8 @@ public record Item(
     // Nullable en base (voir migrations estimate_items/invoice_items).
     [property: JsonPropertyName("company_id")]           int?     CompanyId,
     [property: JsonPropertyName("base_price")]           decimal  BasePrice,
-    [property: JsonPropertyName("exchange_rate")]         decimal  ExchangeRate,
+    // Nullable : peut être renvoyé null par l'API (aucune conversion appliquée).
+    [property: JsonPropertyName("exchange_rate")]         decimal? ExchangeRate,
     [property: JsonPropertyName("base_discount_val")]    decimal  BaseDiscountValue,
     [property: JsonPropertyName("base_tax")]             decimal  BaseTax,
     [property: JsonPropertyName("base_total")]           decimal  BaseTotal,

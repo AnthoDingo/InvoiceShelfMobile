@@ -24,7 +24,8 @@ public record Estimate(
     [property: JsonPropertyName("total")]                   decimal        Total,
     [property: JsonPropertyName("tax")]                     decimal        Tax,
     [property: JsonPropertyName("sequence_number")]         int            SequenceNumber,
-    [property: JsonPropertyName("exchange_rate")]           decimal        ExchangeRate,
+    // Nullable : peut être renvoyé null par l'API (aucune conversion appliquée).
+    [property: JsonPropertyName("exchange_rate")]           decimal?       ExchangeRate,
     [property: JsonPropertyName("base_sub_total")]          decimal        BaseSubTotal,
     [property: JsonPropertyName("base_total")]              decimal        BaseTotal,
     [property: JsonPropertyName("base_tax")]                decimal        BaseTax,

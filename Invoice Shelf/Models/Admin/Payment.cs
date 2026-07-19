@@ -52,7 +52,10 @@ public record Payment(
     [property: JsonPropertyName("notes")]                 string?        Notes,
     [property: JsonPropertyName("amount")]                decimal        Amount,
     [property: JsonPropertyName("base_amount")]           decimal        BaseAmount,
-    [property: JsonPropertyName("exchange_rate")]         decimal        ExchangeRate,
+    // Nullable : l'API InvoiceShelf renvoie parfois "exchange_rate": null (aucune
+    // conversion appliquée, ex. paiement dans la devise de base de la société),
+    // ce qui faisait planter la désérialisation avec un decimal non-nullable.
+    [property: JsonPropertyName("exchange_rate")]         decimal?       ExchangeRate,
     [property: JsonPropertyName("transaction_id")]        string?        TransactionId,
     [property: JsonPropertyName("customer_id")]           int            CustomerId,
     [property: JsonPropertyName("invoice_id")]            int?           InvoiceId,

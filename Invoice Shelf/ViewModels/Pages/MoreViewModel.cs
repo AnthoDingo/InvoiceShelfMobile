@@ -108,9 +108,10 @@ namespace InvoiceShelf.ViewModels.Pages
         private async Task LoadBiometricSettingsAsync()
         {
             IsBiometricAvailable = await _biometricLockService.IsAvailableAsync();
+            bool lockEnabled     = await _biometricLockService.IsEnabledAsync();
 
             _suppressBiometricToggleHandling = true;
-            IsBiometricLockEnabled = IsBiometricAvailable && _biometricLockService.IsEnabled;
+            IsBiometricLockEnabled = IsBiometricAvailable && lockEnabled;
             _suppressBiometricToggleHandling = false;
         }
 
@@ -181,6 +182,12 @@ namespace InvoiceShelf.ViewModels.Pages
             {
                 SecureStorage.Default.Remove("token");
                 _biometricLockService.Disable();
+
+                // Sécurité : purge le cache disque (factures, clients, paiements...) pour
+                // qu'aucune donnée métier du compte déconnecté ne subsiste sur l'appareil.
+                try { await _cacheService.ClearAllAsync(); }
+                catch { /* la déconnexion doit aboutir même si la purge échoue */ }
+
                 await Shell.Current.GoToAsync($"//{nameof(CredentialPage)}");
             }
         }
@@ -199,6 +206,12 @@ namespace InvoiceShelf.ViewModels.Pages
             SecureStorage.Default.Remove("token");
             SecureStorage.Default.Remove("baseUrl");
             _biometricLockService.Disable();
+
+            // Sécurité : purge le cache disque pour ne pas mélanger les données de
+            // l'ancien serveur avec celles du prochain (mêmes clés de cache).
+            try { await _cacheService.ClearAllAsync(); }
+            catch { /* le changement de serveur doit aboutir même si la purge échoue */ }
+
             await Shell.Current.GoToAsync($"//{nameof(EndpointPage)}");
         }
     }
