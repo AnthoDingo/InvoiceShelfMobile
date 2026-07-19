@@ -7,11 +7,10 @@ namespace InvoiceShelf.ViewModels.Pages;
 public partial class PaymentsViewModel : ObservableObject
 {
     private readonly ApiService _apiService;
-    private readonly ICacheService _cacheService;
-        public PaymentsViewModel(ApiService apiService, ICacheService cacheService)
+
+    public PaymentsViewModel(ApiService apiService)
     {
         _apiService = apiService;
-        _cacheService = cacheService;
     }
 
     internal async void Loaded(object? sender, EventArgs e) => await LoadAsync(forceRefresh: false);
@@ -27,24 +26,11 @@ public partial class PaymentsViewModel : ObservableObject
 
     private async Task LoadAsync(bool forceRefresh)
     {
-        if (!forceRefresh)
-        {
-            var cached = await _cacheService.GetAsync<List<Payment>>(CacheKeys.Payments);
-            if (cached.IsFresh && cached.Value is not null)
-            {
-                Console.WriteLine($"[Payments] Cache utilisé (écrit le {cached.CachedAt}, {cached.Value.Count} paiement(s)).");
-                Payments = cached.Value;
-                return;
-            }
-
-            Console.WriteLine($"[Payments] Cache absent/périmé (HasValue={cached.HasValue}, IsExpired={cached.IsExpired}) : appel réseau.");
-        }
-
+        // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
+        // centralisée par ApiService : forceRefresh contourne le cache frais.
         IsRefreshing = true;
         try
         {
-            // Le cache (lecture, écriture, repli hors-ligne) est géré de façon
-            // centralisée par ApiService : forceRefresh contourne le cache frais.
             List<Payment> data = await _apiService.GetPayments(forceRefresh);
             Payments = data;
         }
